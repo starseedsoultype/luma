@@ -25,14 +25,37 @@ async function signInWithTelegram(initData) {
   }
 
   console.log('validate-telegram ok', {
+    bypass: !!data.bypass,
     hasAccessToken: !!data.access_token,
-    hasRefreshToken: !!data.refresh_token,
     hasUser: !!data.user,
     userStatus: data.user?.status,
     userRole: data.user?.role,
   });
 
-  // MOCK TEST — skip setSession
+  // Bypass mode — real user from DB, no Supabase Auth session needed
+  if (data.bypass === true) {
+    return data.user;
+  }
+
+  const { data: sessionData, error: sessionError } = await db.auth.setSession({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+  });
+
+  if (sessionError) {
+    console.error('setSession failed full object', sessionError);
+    throw new Error(
+      sessionError.message ||
+      sessionError.error_description ||
+      JSON.stringify(sessionError, Object.getOwnPropertyNames(sessionError))
+    );
+  }
+
+  console.log('setSession ok', {
+    hasSession: !!sessionData.session,
+    hasUser: !!sessionData.user,
+  });
+
   return data.user;
 }
 

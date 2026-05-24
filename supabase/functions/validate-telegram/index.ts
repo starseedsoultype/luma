@@ -51,18 +51,26 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    // MOCK TEST — bypass all auth/DB
+    // OWNER BYPASS — real user from luma_users, no Supabase Auth session
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { headers: { Authorization: `Bearer ${SERVICE_ROLE_KEY}` } },
+    });
+
+    const { data: realUser, error: userErr } = await adminClient
+      .from('luma_users')
+      .select('*')
+      .eq('telegram_id', 656578642)
+      .maybeSingle();
+
+    if (userErr) throw userErr;
+
     return new Response(JSON.stringify({
-      access_token: 'test',
-      refresh_token: 'test',
-      user: {
-        id: 'owner',
-        telegram_id: 656578642,
-        name: 'Alexa',
-        role: 'admin',
-        status: 'active',
-        current_city: 'phangan',
-      },
+      bypass: true,
+      user: realUser,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

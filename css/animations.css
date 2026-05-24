@@ -1,0 +1,442 @@
+/* ============================================================
+   LUMA — Animations
+   All keyframes, skeleton loading, transitions, staggered
+   entry animations. Depends on: theme.css
+   ============================================================ */
+
+/* ============================================================
+   1. KEYFRAMES
+   ============================================================ */
+
+/* Fade in upward — standard entry for cards, modals, content */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in — simple opacity entry for overlays */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Scale in — for modals, sheets, popovers */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide up from bottom — for bottom sheets */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Shimmer sweep — skeleton loading */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* Featured card pulse — very subtle shadow breathing */
+@keyframes featuredPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px var(--accent),
+      0 4px 20px rgba(43, 133, 232, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--accent),
+      0 6px 28px rgba(43, 133, 232, 0.40);
+  }
+}
+
+/* Gentle float — decorative elements, gate screen icon */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Spin — loading spinners (defined here as canonical) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Bounce dot — 3-dot loading indicator */
+@keyframes bounceDot {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   2. SKELETON LOADING
+   ============================================================ */
+
+/* Base skeleton element */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-subtle) 25%,
+    var(--border)    37%,
+    var(--bg-subtle) 63%
+  );
+  background-size: 800px 100%;
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Skeleton text lines */
+.skeleton-text {
+  height: 14px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.skeleton-text--lg {
+  height: 18px;
+  width: 60%;
+}
+
+.skeleton-text--sm {
+  height: 11px;
+  width: 80%;
+}
+
+.skeleton-text--short {
+  width: 40%;
+}
+
+/* Skeleton avatar circle */
+.skeleton-avatar {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-avatar--md {
+  width: 72px;
+  height: 72px;
+}
+
+.skeleton-avatar--sm {
+  width: 52px;
+  height: 52px;
+}
+
+/* Skeleton button */
+.skeleton-btn {
+  height: 36px;
+  border-radius: var(--radius-xl);
+}
+
+/* Skeleton badge pill */
+.skeleton-badge {
+  height: 22px;
+  width: 60px;
+  border-radius: 20px;
+}
+
+/* Full helper card skeleton — mirrors .helper-card structure */
+.skeleton-card {
+  display: flex;
+  gap: 12px;
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-card__photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  justify-content: center;
+}
+
+.skeleton-card__name {
+  height: 17px;
+  width: 55%;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.skeleton-card__meta {
+  height: 13px;
+  width: 75%;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.skeleton-card__price {
+  height: 13px;
+  width: 30%;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.skeleton-card__badges {
+  display: flex;
+  gap: 6px;
+}
+
+.skeleton-card__badge {
+  height: 20px;
+  width: 52px;
+  border-radius: 20px;
+}
+
+/* Apply shimmer animation to all skeleton children */
+.skeleton-card__photo,
+.skeleton-card__name,
+.skeleton-card__meta,
+.skeleton-card__price,
+.skeleton-card__badge {
+  background: linear-gradient(
+    90deg,
+    var(--bg-subtle) 25%,
+    var(--border)    37%,
+    var(--bg-subtle) 63%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Stagger skeleton cards slightly */
+.skeleton-card:nth-child(2) .skeleton-card__photo,
+.skeleton-card:nth-child(2) .skeleton-card__name,
+.skeleton-card:nth-child(2) .skeleton-card__meta,
+.skeleton-card:nth-child(2) .skeleton-card__price,
+.skeleton-card:nth-child(2) .skeleton-card__badge {
+  animation-delay: 0.1s;
+}
+
+.skeleton-card:nth-child(3) .skeleton-card__photo,
+.skeleton-card:nth-child(3) .skeleton-card__name,
+.skeleton-card:nth-child(3) .skeleton-card__meta,
+.skeleton-card:nth-child(3) .skeleton-card__price,
+.skeleton-card:nth-child(3) .skeleton-card__badge {
+  animation-delay: 0.2s;
+}
+
+/* ============================================================
+   3. ENTRY ANIMATIONS
+   ============================================================ */
+
+/* Generic animate-in trigger — JS adds this class */
+.animate-in {
+  animation: fadeInUp 0.3s ease both;
+}
+
+/* Staggered entry delays for helper card list */
+.helpers-list .helper-card:nth-child(1)  { animation: fadeInUp 0.3s ease both; animation-delay:   0ms; }
+.helpers-list .helper-card:nth-child(2)  { animation: fadeInUp 0.3s ease both; animation-delay:  60ms; }
+.helpers-list .helper-card:nth-child(3)  { animation: fadeInUp 0.3s ease both; animation-delay: 120ms; }
+.helpers-list .helper-card:nth-child(4)  { animation: fadeInUp 0.3s ease both; animation-delay: 180ms; }
+.helpers-list .helper-card:nth-child(5)  { animation: fadeInUp 0.3s ease both; animation-delay: 240ms; }
+.helpers-list .helper-card:nth-child(6)  { animation: fadeInUp 0.3s ease both; animation-delay: 300ms; }
+
+/* Cards beyond 6th appear immediately to avoid very long wait */
+.helpers-list .helper-card:nth-child(n+7) { animation: fadeInUp 0.3s ease both; animation-delay: 300ms; }
+
+/* Staggered stat cards */
+.stats-grid .stat-card:nth-child(1) { animation: scaleIn 0.25s ease both; animation-delay:  0ms; }
+.stats-grid .stat-card:nth-child(2) { animation: scaleIn 0.25s ease both; animation-delay: 60ms; }
+.stats-grid .stat-card:nth-child(3) { animation: scaleIn 0.25s ease both; animation-delay: 120ms; }
+.stats-grid .stat-card:nth-child(4) { animation: scaleIn 0.25s ease both; animation-delay: 180ms; }
+
+/* Staggered app-card list */
+.app-cards-list .app-card:nth-child(1) { animation: fadeInUp 0.3s ease both; animation-delay:   0ms; }
+.app-cards-list .app-card:nth-child(2) { animation: fadeInUp 0.3s ease both; animation-delay:  60ms; }
+.app-cards-list .app-card:nth-child(3) { animation: fadeInUp 0.3s ease both; animation-delay: 120ms; }
+.app-cards-list .app-card:nth-child(4) { animation: fadeInUp 0.3s ease both; animation-delay: 180ms; }
+.app-cards-list .app-card:nth-child(5) { animation: fadeInUp 0.3s ease both; animation-delay: 240ms; }
+
+/* Gate screen entry */
+.gate-logo    { animation: fadeInUp 0.4s ease both; animation-delay:   0ms; }
+.gate-title   { animation: fadeInUp 0.4s ease both; animation-delay:  80ms; }
+.gate-body    { animation: fadeInUp 0.4s ease both; animation-delay: 140ms; }
+.gate-cta     { animation: fadeInUp 0.4s ease both; animation-delay: 200ms; }
+
+/* Empty state entry */
+.empty-state { animation: fadeIn 0.35s ease both; }
+
+/* ============================================================
+   4. FEATURED CARD PULSE
+   ============================================================ */
+
+.helper-card--featured {
+  animation: featuredPulse 3s ease-in-out infinite;
+}
+
+/* Pause pulse on tap to avoid jitter during press */
+.helper-card--featured:active {
+  animation-play-state: paused;
+}
+
+/* ============================================================
+   5. HELPERS LIST FILTER TRANSITION
+   ============================================================ */
+
+/* When the JS applies a loading state during filter change */
+.helpers-list {
+  transition: opacity 0.15s ease;
+}
+
+.helpers-list--transitioning {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   6. PAGE TRANSITION
+   ============================================================ */
+
+.page {
+  /* Defined in components.css — animations layer reinforces */
+}
+
+.page--entering {
+  animation: fadeInUp 0.22s ease both;
+}
+
+.page--exiting {
+  animation: fadeIn 0.15s ease both reverse;
+}
+
+/* ============================================================
+   7. BOTTOM SHEET / MODAL
+   ============================================================ */
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-overlay);
+  background-color: var(--surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-20) var(--space-16);
+  padding-bottom: calc(var(--space-20) + var(--safe-bottom));
+  box-shadow: 0 -4px 32px rgba(43, 133, 232, 0.14);
+  animation: slideUp 0.28s cubic-bezier(0.34, 1.12, 0.64, 1) both;
+}
+
+.bottom-sheet__handle {
+  width: 36px;
+  height: 4px;
+  background-color: var(--border);
+  border-radius: 2px;
+  margin: 0 auto var(--space-20);
+}
+
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-overlay) - 1);
+  background: rgba(15, 31, 51, 0.35);
+  animation: fadeIn 0.2s ease both;
+}
+
+/* ============================================================
+   8. FLOATING ELEMENT
+   ============================================================ */
+
+.floating {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ============================================================
+   9. BOUNCE DOTS (3-dot loading)
+   ============================================================ */
+
+.bounce-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bounce-dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: bounceDot 1.2s ease-in-out infinite;
+}
+
+.bounce-dots span:nth-child(1) { animation-delay: 0ms; }
+.bounce-dots span:nth-child(2) { animation-delay: 160ms; }
+.bounce-dots span:nth-child(3) { animation-delay: 320ms; }
+
+/* ============================================================
+   10. REDUCED MOTION SUPPORT
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:   0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:  0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep featured cards visually distinct but no motion */
+  .helper-card--featured {
+    animation: none;
+    box-shadow: var(--featured-glow);
+  }
+
+  /* Skeleton still shows but without motion */
+  .skeleton,
+  .skeleton-card__photo,
+  .skeleton-card__name,
+  .skeleton-card__meta,
+  .skeleton-card__price,
+  .skeleton-card__badge {
+    animation: none;
+    background: var(--bg-subtle);
+  }
+}

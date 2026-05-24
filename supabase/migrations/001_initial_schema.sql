@@ -9,24 +9,6 @@
 
 
 -- ============================================================
--- HELPER FUNCTION: get_my_role()
--- Reads the role of the currently authenticated user.
--- Used in RLS policies to gate access by role.
--- ============================================================
-
-CREATE OR REPLACE FUNCTION get_my_role()
-RETURNS text
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-AS $$
-  SELECT role
-  FROM public.luma_users
-  WHERE id = auth.uid()
-$$;
-
-
--- ============================================================
 -- TABLE: users
 -- ============================================================
 
@@ -50,6 +32,22 @@ CREATE TABLE public.luma_users (
 
 -- Indexes
 CREATE INDEX idx_luma_users_telegram_id ON public.luma_users(telegram_id);
+
+-- ============================================================
+-- HELPER FUNCTION: get_my_role()
+-- Must be created AFTER luma_users table exists.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION get_my_role()
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT role
+  FROM public.luma_users
+  WHERE id = auth.uid()
+$$;
 
 -- RLS
 ALTER TABLE public.luma_users ENABLE ROW LEVEL SECURITY;

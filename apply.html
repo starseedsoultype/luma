@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Luma — Become a Helper</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+<div class="app-container">
+  <header class="header">
+    <button class="btn-ghost" onclick="history.back()">←</button>
+    <div class="header-title" data-i18n="apply_title">Become a Helper</div>
+    <div></div>
+  </header>
+
+  <div class="page-content" style="padding-top:64px">
+
+    <div id="apply-form-wrapper">
+      <form id="apply-form" novalidate>
+
+        <!-- Photo -->
+        <div class="form-group" style="text-align:center">
+          <div class="avatar-upload" id="avatar-preview" onclick="document.getElementById('avatar-input').click()">
+            <span style="font-size:32px">📷</span>
+          </div>
+          <input type="file" id="avatar-input" accept="image/*" style="display:none">
+          <div id="avatar-error" class="form-error page--hidden"></div>
+        </div>
+
+        <!-- Name -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_name">Display Name</label>
+          <input id="apply-name" class="form-input" type="text" maxlength="60">
+          <div id="name-error" class="form-error page--hidden"></div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_category">Category</label>
+          <select id="apply-category" class="form-select">
+            <option value="">—</option>
+            <option value="cleaner">Cleaner</option>
+            <option value="nanny">Nanny</option>
+            <option value="assistant">Assistant</option>
+            <option value="handyman">Handyman</option>
+            <option value="chef">Chef</option>
+            <option value="driver">Driver</option>
+          </select>
+          <div id="category-error" class="form-error page--hidden"></div>
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_bio">About You</label>
+          <textarea id="apply-bio" class="form-input" rows="4" maxlength="500"
+            data-i18n-placeholder="apply_bio_placeholder"></textarea>
+        </div>
+
+        <!-- Languages -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_languages">Languages</label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">
+            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="English"> English</label>
+            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="Russian"> Русский</label>
+            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="Thai"> Thai</label>
+            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="French"> French</label>
+            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="German"> German</label>
+            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="Chinese"> Chinese</label>
+          </div>
+        </div>
+
+        <!-- Area -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_area">Area / Neighborhood</label>
+          <input id="apply-area" class="form-input" type="text" maxlength="80" placeholder="e.g. Srithanu, Haad Rin...">
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_city">City</label>
+          <select id="apply-city" class="form-select"></select>
+        </div>
+
+        <!-- Price -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_price_from">Starting Price</label>
+          <div style="display:flex;gap:10px">
+            <input id="apply-price" class="form-input" type="number" min="0" placeholder="500" style="flex:1">
+            <select id="apply-price-unit" class="form-select" style="flex:1">
+              <option value="hour">/ hour</option>
+              <option value="visit">/ visit</option>
+              <option value="day">/ day</option>
+              <option value="project">/ project</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Telegram -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_telegram">Telegram Username</label>
+          <input id="apply-telegram" class="form-input" type="text"
+            data-i18n-placeholder="apply_telegram_placeholder">
+          <div id="telegram-error" class="form-error page--hidden"></div>
+        </div>
+
+        <!-- Legal -->
+        <div class="form-group" style="background:var(--accent-light);border-radius:var(--radius-md);padding:14px">
+          <label class="form-checkbox-wrapper" style="align-items:flex-start;gap:10px">
+            <input type="checkbox" id="apply-legal-checkbox" style="margin-top:3px;flex-shrink:0">
+            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5" data-i18n="apply_legal"></span>
+          </label>
+          <div id="legal-error" class="form-error page--hidden"></div>
+        </div>
+
+        <div id="submit-error" class="form-error page--hidden" style="margin-bottom:12px"></div>
+
+        <button type="submit" id="apply-submit-btn" class="btn btn-primary" data-i18n="apply_submit">
+          Submit Application
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Success -->
+    <div id="apply-success" class="page--hidden" style="text-align:center;padding:48px 0">
+      <div style="font-size:56px;margin-bottom:16px">✅</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:12px" data-i18n="apply_success_title"></div>
+      <div style="font-size:15px;color:var(--text-secondary);line-height:1.6" data-i18n="apply_success_text"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/apply.js"></script>
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+  const App = { lang: localStorage.getItem('luma_lang') || 'en', city: localStorage.getItem('luma_city') || 'phangan' };
+  setLang(App.lang);
+</script>
+</body>
+</html>

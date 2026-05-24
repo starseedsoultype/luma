@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Luma</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+<!-- Gate screen (invite-only cities) -->
+<div id="gate-screen" class="gate-screen page--hidden">
+  <div class="gate-logo">Luma</div>
+  <div class="gate-title" id="gate-title"></div>
+  <div class="gate-body" id="gate-body"></div>
+  <div class="gate-cta" data-i18n="gate_cta"></div>
+</div>
+
+<!-- Main app -->
+<div id="main-app" class="app-container page--hidden">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title">Luma</div>
+    <div class="header-right">
+      <button class="header-city" onclick="openCityPicker()"></button>
+      <button class="header-lang" onclick="toggleLang()">EN</button>
+    </div>
+  </header>
+
+  <!-- City picker dropdown -->
+  <div id="city-picker" class="city-picker page--hidden" onclick="closeCityPicker()"></div>
+
+  <!-- Pages -->
+
+  <!-- Home -->
+  <div id="page-home" class="page page--hidden">
+    <div class="page-content">
+      <div class="search-wrap">
+        <input id="search-input" class="search-bar" type="search" data-i18n-placeholder="search_placeholder">
+      </div>
+      <div class="category-pills">
+        <button class="pill pill--active" data-cat="all" data-i18n="cat_all">All</button>
+        <button class="pill" data-cat="cleaner" data-i18n="cat_cleaner">Cleaner</button>
+        <button class="pill" data-cat="nanny" data-i18n="cat_nanny">Nanny</button>
+        <button class="pill" data-cat="assistant" data-i18n="cat_assistant">Assistant</button>
+        <button class="pill" data-cat="handyman" data-i18n="cat_handyman">Handyman</button>
+        <button class="pill" data-cat="chef" data-i18n="cat_chef">Chef</button>
+        <button class="pill" data-cat="driver" data-i18n="cat_driver">Driver</button>
+      </div>
+      <div id="helpers-list" class="helpers-list"></div>
+    </div>
+  </div>
+
+  <!-- Helper detail -->
+  <div id="page-helper" class="page page--hidden">
+    <div class="page-content">
+      <button class="btn-ghost" style="margin-bottom:16px" onclick="goBack()">← Back</button>
+      <div style="text-align:center;margin-bottom:20px">
+        <img class="helper-detail-photo" src="" alt=""
+             style="width:96px;height:96px;border-radius:50%;object-fit:cover;margin-bottom:12px">
+        <div class="helper-detail-name" style="font-size:20px;font-weight:700"></div>
+        <div class="helper-detail-category" style="color:var(--text-secondary);font-size:14px;margin-top:4px"></div>
+        <div class="helper-detail-area" style="color:var(--text-muted);font-size:13px;margin-top:2px"></div>
+      </div>
+      <div class="helper-detail-badges" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:20px"></div>
+      <div class="helper-detail-price" style="font-size:15px;font-weight:600;color:var(--accent);margin-bottom:16px;text-align:center"></div>
+      <div class="helper-detail-bio" style="color:var(--text-secondary);font-size:15px;line-height:1.6;margin-bottom:24px"></div>
+      <button class="btn btn-primary btn-contact-helper" data-i18n="card_message">Message in Telegram</button>
+    </div>
+  </div>
+
+  <!-- Favorites -->
+  <div id="page-favorites" class="page page--hidden">
+    <div class="page-content">
+      <div class="section-header">
+        <span class="section-title" data-i18n="favorites_title">Saved</span>
+      </div>
+      <div id="favorites-list" class="helpers-list"></div>
+    </div>
+  </div>
+
+  <!-- Invite -->
+  <div id="page-invite" class="page page--hidden">
+    <div class="page-content">
+      <div class="section-header">
+        <span class="section-title" data-i18n="invite_title">Invite</span>
+      </div>
+      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px" data-i18n="invite_subtitle"></p>
+
+      <button id="generate-invite-btn" class="btn btn-primary" data-i18n="invite_generate">Generate Invite Link</button>
+
+      <div id="new-invite-result" class="invite-card page--hidden" style="margin-top:16px">
+        <div class="new-invite-link invite-link" style="word-break:break-all;font-size:13px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm copy-new-invite" data-i18n="invite_copy">Copy</button>
+          <button class="btn btn-primary btn-sm share-new-invite" data-i18n="invite_share">Share</button>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top:28px">
+        <span class="section-title" data-i18n="invite_history">My Invites</span>
+      </div>
+      <div id="invite-history-list"></div>
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div id="page-profile" class="page page--hidden">
+    <div class="page-content">
+      <div style="text-align:center;padding:20px 0">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--accent-light);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px">👤</div>
+        <div class="profile-name" style="font-size:18px;font-weight:700"></div>
+        <div class="profile-handle" style="font-size:14px;color:var(--text-secondary);margin-top:4px"></div>
+        <div class="profile-role" style="font-size:12px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px"></div>
+      </div>
+
+      <div id="my-application-section" class="page--hidden" style="margin-bottom:20px">
+        <div class="section-header">
+          <span class="section-title" data-i18n="profile_my_application">My Helper Profile</span>
+        </div>
+        <div class="app-card">
+          <span class="my-app-status status-badge"></span>
+        </div>
+      </div>
+
+      <div class="profile-row">
+        <span class="profile-row__label" data-i18n="profile_city">City</span>
+        <span class="profile-row__value" id="profile-city-val"></span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-row__label" data-i18n="profile_language">Language</span>
+        <span class="profile-row__value" id="profile-lang-val"></span>
+      </div>
+
+      <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
+        <a href="apply.html" class="btn btn-secondary" data-i18n="apply_title">Become a Helper</a>
+        <a href="legal.html" class="btn btn-ghost" data-i18n="legal_title">Privacy &amp; Terms</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin -->
+  <div id="page-admin" class="page page--hidden">
+    <div class="page-content">
+      <div class="section-header">
+        <span class="section-title" data-i18n="admin_title">Admin</span>
+      </div>
+      <div id="admin-content"></div>
+    </div>
+  </div>
+
+  <!-- Circle -->
+  <div id="page-circle" class="page page--hidden">
+    <div class="page-content">
+      <div class="section-header">
+        <span class="section-title" data-i18n="circle_title">Trusted Circle</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="pill circle-tab circle-tab--active" data-tab="pending" data-i18n="circle_pending">Pending</button>
+        <button class="pill circle-tab" data-tab="voted" data-i18n="circle_my_votes">My Votes</button>
+      </div>
+      <div id="circle-list"></div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item nav-item--active" data-page="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label" data-i18n="nav_home">Home</span>
+    </button>
+    <button class="nav-item" data-page="favorites">
+      <span class="nav-icon">🔖</span>
+      <span class="nav-label" data-i18n="nav_favorites">Saved</span>
+    </button>
+    <button class="nav-item" data-page="invite">
+      <span class="nav-icon">✉️</span>
+      <span class="nav-label" data-i18n="nav_invite">Invite</span>
+    </button>
+    <button class="nav-item" data-page="profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label" data-i18n="nav_profile">Profile</span>
+    </button>
+    <button class="nav-item page--hidden" id="nav-circle" data-page="circle">
+      <span class="nav-icon">⭕</span>
+      <span class="nav-label">Circle</span>
+    </button>
+    <button class="nav-item page--hidden" id="nav-admin" data-page="admin">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Admin</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/invite.js"></script>
+<script src="js/circle.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

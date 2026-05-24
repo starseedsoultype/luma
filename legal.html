@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Luma — Privacy &amp; Terms</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-container">
+  <header class="header">
+    <button class="btn-ghost" onclick="history.back()">←</button>
+    <div class="header-title" data-i18n="legal_title">Privacy &amp; Terms</div>
+    <div></div>
+  </header>
+
+  <div class="page-content" style="padding-top:64px">
+
+    <div style="margin-bottom:28px">
+      <h2 style="font-size:17px;font-weight:700;margin-bottom:12px" data-i18n="legal_privacy_title">Privacy Notice</h2>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.7" data-i18n="legal_privacy_text"></p>
+    </div>
+
+    <div style="margin-bottom:28px">
+      <h2 style="font-size:17px;font-weight:700;margin-bottom:12px" data-i18n="legal_terms_title">Terms of Use</h2>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.7" data-i18n="legal_terms_text"></p>
+    </div>
+
+    <div style="padding:16px;background:var(--accent-light);border-radius:var(--radius-md)">
+      <p style="font-size:13px;color:var(--text-secondary)" data-i18n="legal_contact"></p>
+    </div>
+
+    <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--text-muted)">
+      Luma · Private Helper Network · v1.0
+    </div>
+
+  </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+  setLang(localStorage.getItem('luma_lang') || 'en');
+</script>
+</body>
+</html>

@@ -16,7 +16,6 @@ async function signInWithTelegram(initData) {
 
   if (!res.ok) {
     console.error('validate-telegram failed', res.status, data);
-    // Throw with a code so app.js can route to the right gate screen
     const code = typeof data.error === 'string' ? data.error : data.error?.message || 'error';
     const err = new Error(code);
     err.code = code;
@@ -24,36 +23,23 @@ async function signInWithTelegram(initData) {
   }
 
   console.log('validate-telegram ok', {
-    bypass: !!data.bypass,
     hasAccessToken: !!data.access_token,
     hasUser: !!data.user,
     userStatus: data.user?.status,
     userRole: data.user?.role,
   });
 
-  // Bypass mode — real user from DB, no Supabase Auth session needed
-  if (data.bypass === true) {
-    return data.user;
+  if (data.access_token && data.refresh_token) {
+    const { data: sessionData, error: sessionError } = await db.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    if (sessionError) {
+      console.error('setSession failed', sessionError);
+    } else {
+      console.log('setSession ok', { hasSession: !!sessionData.session });
+    }
   }
-
-  const { data: sessionData, error: sessionError } = await db.auth.setSession({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-  });
-
-  if (sessionError) {
-    console.error('setSession failed full object', sessionError);
-    throw new Error(
-      sessionError.message ||
-      sessionError.error_description ||
-      JSON.stringify(sessionError, Object.getOwnPropertyNames(sessionError))
-    );
-  }
-
-  console.log('setSession ok', {
-    hasSession: !!sessionData.session,
-    hasUser: !!sessionData.user,
-  });
 
   return data.user;
 }

@@ -36,7 +36,7 @@ async function initApp() {
     App.user = await authUser();
   } catch (e) {
     console.error('Auth failed', e);
-    showGate('error');
+    showGate('error', e.message || String(e));
     return;
   }
 
@@ -117,7 +117,7 @@ function showGate(type, errorCode) {
     body.textContent = 'Your account has been suspended.';
   } else {
     title.textContent = 'Error';
-    body.textContent = t('error_generic');
+    body.textContent = errorCode || t('error_generic');
   }
 
   document.getElementById('main-app')?.classList.add('page--hidden');

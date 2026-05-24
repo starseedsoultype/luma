@@ -13,12 +13,33 @@ async function signInWithTelegram(initData) {
     },
   );
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Telegram auth failed');
 
-  // Establish authenticated Supabase session so auth.uid() works in RLS
-  await db.auth.setSession({
+  if (!res.ok) {
+    console.error('validate-telegram failed', data);
+    throw new Error(data.error || 'Telegram auth failed');
+  }
+
+  console.log('validate-telegram ok', {
+    hasAccessToken: !!data.access_token,
+    hasRefreshToken: !!data.refresh_token,
+    hasUser: !!data.user,
+    userStatus: data.user?.status,
+    userRole: data.user?.role,
+  });
+
+  const { data: sessionData, error: sessionError } = await db.auth.setSession({
     access_token: data.access_token,
     refresh_token: data.refresh_token,
+  });
+
+  if (sessionError) {
+    console.error('setSession failed', sessionError);
+    throw new Error('setSession: ' + sessionError.message);
+  }
+
+  console.log('setSession ok', {
+    hasSession: !!sessionData.session,
+    hasUser: !!sessionData.user,
   });
 
   return data.user;

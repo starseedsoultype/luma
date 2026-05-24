@@ -204,8 +204,23 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // 3b. User not found
-    if (!isAdmin && !inviteCode) {
+    // 3b. User not found — resolve inviteCode from luma_pending_invites if not already set
+    let resolvedInviteCode = inviteCode;
+    let pendingInviteId: string | null = null;
+
+    if (!isAdmin && !resolvedInviteCode) {
+      const pendingRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/luma_pending_invites?telegram_id=eq.${telegramId}&used_at=is.null&select=*&order=created_at.desc&limit=1`,
+        { headers: restHeaders },
+      );
+      const pendingRows = await pendingRes.json();
+      if (pendingRes.ok && pendingRows.length) {
+        resolvedInviteCode = pendingRows[0].invite_code as string;
+        pendingInviteId = pendingRows[0].id as string;
+      }
+    }
+
+    if (!isAdmin && !resolvedInviteCode) {
       return new Response(
         JSON.stringify({
           error: 'invite_required',
@@ -217,9 +232,9 @@ Deno.serve(async (req: Request) => {
 
     // 4. Validate invite (non-admin)
     let invite: Record<string, unknown> | null = null;
-    if (!isAdmin && inviteCode) {
+    if (!isAdmin && resolvedInviteCode) {
       const inviteRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/luma_invite_codes?code=eq.${inviteCode}&used_at=is.null&select=*`,
+        `${SUPABASE_URL}/rest/v1/luma_invite_codes?code=eq.${resolvedInviteCode}&used_at=is.null&select=*`,
         { headers: restHeaders },
       );
       const invites = await inviteRes.json();
@@ -228,7 +243,7 @@ Deno.serve(async (req: Request) => {
           JSON.stringify({
             error: 'invite_required',
             detail: 'invalid_or_used',
-            debug: { startParam, inviteCode, found: invites?.length, ok: inviteRes.ok },
+            debug: { startParam, inviteCode: resolvedInviteCode, found: invites?.length, ok: inviteRes.ok },
           }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
@@ -295,6 +310,18 @@ Deno.serve(async (req: Request) => {
           method: 'PATCH',
           headers: restHeaders,
           body: JSON.stringify({ used_at: new Date().toISOString(), used_by: user.id }),
+        },
+      );
+    }
+
+    // 7b. Mark pending invite used (if resolved from luma_pending_invites)
+    if (pendingInviteId) {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/luma_pending_invites?id=eq.${pendingInviteId}`,
+        {
+          method: 'PATCH',
+          headers: restHeaders,
+          body: JSON.stringify({ used_at: new Date().toISOString() }),
         },
       );
     }

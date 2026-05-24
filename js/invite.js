@@ -29,7 +29,7 @@ async function renderInviteHistory() {
 
 function renderInviteRow(invite) {
   const botUsername = CONFIG.botUsername;
-  const link = `https://t.me/${botUsername}?startapp=invite_${invite.code}`;
+  const link = `https://t.me/${botUsername}?start=invite_${invite.code}`;
   const used = !!invite.used_at;
   const usedBy = invite.used_user?.name || invite.used_user?.telegram_handle || '';
 
@@ -72,7 +72,7 @@ async function handleGenerateInvite() {
   try {
     const result = await generateInvite(App.city);
     const botUsername = CONFIG.botUsername;
-    const link = `https://t.me/${botUsername}?startapp=invite_${result.code}`;
+    const link = `https://t.me/${botUsername}?start=invite_${result.code}`;
 
     showNewInviteLink(link);
     renderInviteHistory();

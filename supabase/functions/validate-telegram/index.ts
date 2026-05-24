@@ -101,9 +101,18 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const body = await req.json();
-    const { initData, inviteCode: bodyInviteCode } = body;
-    if (!initData) throw new Error('no initData');
+    const raw = await req.text();
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(raw);
+    } catch (_) {
+      return new Response(JSON.stringify({ error: 'bad_json', raw: raw.slice(0, 200) }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const initData = typeof body.initData === 'string' ? body.initData : null;
+    const bodyInviteCode = typeof body.inviteCode === 'string' ? body.inviteCode : null;
+    if (!initData) throw new Error('no initData (raw body: ' + raw.slice(0, 100) + ')');
 
     const botToken = Deno.env.get('LUMA_BOT_TOKEN')!;
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -116,7 +125,10 @@ Deno.serve(async (req: Request) => {
     const validated = await validateTelegramInitData(initData, botToken);
     if (!validated) {
       return new Response(
-        JSON.stringify({ error: 'Invalid Telegram signature' }),
+        JSON.stringify({
+          error: 'Invalid Telegram signature',
+          debug: { initDataLength: initData.length, initDataStart: initData.slice(0, 80) },
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }

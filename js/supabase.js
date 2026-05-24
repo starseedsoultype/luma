@@ -19,9 +19,11 @@ async function signInWithTelegram(initData) {
 
   if (!res.ok) {
     console.error('validate-telegram failed', res.status, data);
-    const code = typeof data.error === 'string' ? data.error : data.error?.message || 'error';
+    const code = typeof data.error === 'string'
+      ? data.error
+      : (data.error?.message || data.error?.code || JSON.stringify(data) || 'error');
     const err = new Error(code);
-    err.code = code;
+    err.code = typeof data.error === 'string' ? data.error : (data.error?.code || code);
     throw err;
   }
 

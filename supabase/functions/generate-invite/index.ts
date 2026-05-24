@@ -56,7 +56,16 @@ serve(async (req) => {
 
     if (!dbUser || dbUser.status !== 'active') throw new Error('Account not active');
 
+    console.log('JWT user', JSON.stringify(user));
+    console.log('dbUser', JSON.stringify(dbUser));
+
     const code = generateCode();
+
+    console.log('insert payload', JSON.stringify({
+      code,
+      city,
+      created_by: dbUser?.id,
+    }));
 
     const { data, error } = await supabase
       .from('luma_invite_codes')
@@ -74,10 +83,24 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('generate-invite failed');
+    console.error(JSON.stringify({
+      message: err?.message,
+      stack: err?.stack,
+      details: err,
+    }));
+
+    return new Response(
+      JSON.stringify({
+        error: err?.message,
+        stack: err?.stack,
+        details: err,
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
 

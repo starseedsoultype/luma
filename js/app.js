@@ -35,8 +35,13 @@ async function initApp() {
   try {
     App.user = await authUser();
   } catch (e) {
-    console.error('Auth failed', e);
-    showGate('error', e.message || String(e));
+    console.error('Auth failed full object', e);
+    const message =
+      e?.message ||
+      e?.error_description ||
+      e?.error ||
+      JSON.stringify(e, Object.getOwnPropertyNames(e));
+    showGate('error', message);
     return;
   }
 

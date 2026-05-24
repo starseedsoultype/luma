@@ -33,8 +33,12 @@ async function signInWithTelegram(initData) {
   });
 
   if (sessionError) {
-    console.error('setSession failed', sessionError);
-    throw new Error('setSession: ' + sessionError.message);
+    console.error('setSession failed full object', sessionError);
+    throw new Error(
+      sessionError.message ||
+      sessionError.error_description ||
+      JSON.stringify(sessionError, Object.getOwnPropertyNames(sessionError))
+    );
   }
 
   console.log('setSession ok', {

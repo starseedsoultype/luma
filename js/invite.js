@@ -81,11 +81,18 @@ async function handleGenerateInvite() {
     console.error('Generate invite failed', e);
     tg?.HapticFeedback?.notificationOccurred('error');
 
-    // Show full debug info on device so we can diagnose without DevTools
+    // Show full debug info inline in the page (works even if tg.showAlert unavailable)
     const debugStr = e.debug
       ? JSON.stringify(e.debug, null, 2)
       : (e.rawData ? JSON.stringify(e.rawData, null, 2) : e.message);
-    tg?.showAlert?.(`ERROR: ${e.message}\n\nDEBUG:\n${debugStr}`);
+    const existing = document.getElementById('invite-debug-output');
+    const box = existing || document.createElement('div');
+    box.id = 'invite-debug-output';
+    box.style.cssText = 'margin-top:16px;padding:12px;background:#1a1a2e;color:#ff6b6b;font-size:11px;border-radius:8px;white-space:pre-wrap;word-break:break-all;border:1px solid #ff6b6b';
+    box.textContent = `ERROR: ${e.message}\n\nDEBUG:\n${debugStr}`;
+    if (!existing) {
+      document.getElementById('generate-invite-btn')?.after(box);
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = t('invite_generate');

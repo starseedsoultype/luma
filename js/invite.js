@@ -80,6 +80,12 @@ async function handleGenerateInvite() {
   } catch (e) {
     console.error('Generate invite failed', e);
     tg?.HapticFeedback?.notificationOccurred('error');
+
+    // Show full debug info on device so we can diagnose without DevTools
+    const debugStr = e.debug
+      ? JSON.stringify(e.debug, null, 2)
+      : (e.rawData ? JSON.stringify(e.rawData, null, 2) : e.message);
+    tg?.showAlert?.(`ERROR: ${e.message}\n\nDEBUG:\n${debugStr}`);
   } finally {
     btn.disabled = false;
     btn.textContent = t('invite_generate');

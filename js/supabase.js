@@ -153,10 +153,30 @@ async function getMyApplication(userId) {
 // ─── Invites ─────────────────────────────────────────────────────────────────
 
 async function generateInvite(city) {
-  const { data, error } = await db.functions.invoke('generate-invite', {
-    body: { city },
-  });
-  if (error) throw error;
+  const { data: { session } } = await db.auth.getSession();
+  const token = session?.access_token;
+
+  const res = await fetch(
+    `${CONFIG.supabaseUrl}/functions/v1/generate-invite`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': CONFIG.supabaseAnonKey,
+      },
+      body: JSON.stringify({ city }),
+    }
+  );
+
+  const data = await res.json();
+  if (!res.ok) {
+    // Attach full response body so caller can surface debug info
+    const err = new Error(data?.error || 'generate-invite failed');
+    err.debug = data?.debug || null;
+    err.rawData = data;
+    throw err;
+  }
   return data;
 }
 

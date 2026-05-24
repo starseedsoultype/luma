@@ -30,7 +30,7 @@ serve(async (req) => {
 
     // Upsert user
     const { data: user, error } = await supabase
-      .from('users')
+      .from('luma_users')
       .upsert({
         telegram_id: tgUser.id,
         name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' '),

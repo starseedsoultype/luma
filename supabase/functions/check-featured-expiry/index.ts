@@ -8,14 +8,14 @@ serve(async (_req) => {
   );
 
   const { data: expired } = await supabase
-    .from('helper_profiles')
+    .from('luma_helper_profiles')
     .select('id, user_id, users(telegram_id)')
     .eq('is_featured', true)
     .lt('featured_until', new Date().toISOString());
 
   if (expired?.length) {
     const ids = expired.map(h => h.id);
-    await supabase.from('helper_profiles').update({
+    await supabase.from('luma_helper_profiles').update({
       is_featured: false,
       featured_until: null,
     }).in('id', ids);

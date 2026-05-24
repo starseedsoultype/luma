@@ -29,13 +29,13 @@ serve(async (req) => {
     if (!user) throw new Error('Unauthorized');
 
     const { data: dbUser } = await supabase
-      .from('users').select('id,status,role').eq('id', user.id).single();
+      .from('luma_users').select('id,status,role').eq('id', user.id).single();
     if (!dbUser || dbUser.status !== 'active') throw new Error('Account not active');
 
     // Generate unique code
     const code = generateCode();
 
-    const { data, error } = await supabase.from('invite_codes').insert({
+    const { data, error } = await supabase.from('luma_invite_codes').insert({
       code,
       city: city || 'phangan',
       created_by: dbUser.id,

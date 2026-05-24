@@ -17,10 +17,10 @@ serve(async (req) => {
     );
 
     const newStatus = action === 'ban' ? 'banned' : 'active';
-    await supabase.from('users').update({ status: newStatus }).eq('id', userId);
+    await supabase.from('luma_users').update({ status: newStatus }).eq('id', userId);
 
     if (action === 'ban') {
-      await supabase.from('helper_profiles').update({
+      await supabase.from('luma_helper_profiles').update({
         is_active: false,
         trust_status: 'hidden',
         updated_at: new Date().toISOString(),

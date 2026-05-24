@@ -19,7 +19,7 @@ serve(async (req) => {
     );
 
     const { data: invite, error } = await supabase
-      .from('invite_codes').select('*').eq('code', code).single();
+      .from('luma_invite_codes').select('*').eq('code', code).single();
 
     if (error || !invite) return new Response(JSON.stringify({ success: false, error: 'invalid' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -43,14 +43,14 @@ serve(async (req) => {
     }
 
     // Mark invite as used
-    await supabase.from('invite_codes').update({
+    await supabase.from('luma_invite_codes').update({
       used_by: userId,
       used_at: new Date().toISOString(),
     }).eq('id', invite.id);
 
     // Activate user if needed
     if (userId) {
-      await supabase.from('users').update({
+      await supabase.from('luma_users').update({
         status: 'active',
         invited_by: invite.created_by,
         current_city: invite.city,

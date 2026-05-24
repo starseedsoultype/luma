@@ -174,7 +174,7 @@ async function loadAdminUsers() {
   if (!list) return;
   list.innerHTML = '<div class="skeleton-card"></div>'.repeat(3);
   try {
-    const { data, error } = await db.from('users').select('*').order('created_at', { ascending: false });
+    const { data, error } = await db.from('luma_users').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     list.innerHTML = data.map(u => `
       <div class="app-card">

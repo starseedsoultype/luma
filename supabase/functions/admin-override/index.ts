@@ -17,14 +17,14 @@ serve(async (req) => {
     );
 
     const isActive = status === 'approved';
-    await supabase.from('helper_profiles').update({
+    await supabase.from('luma_helper_profiles').update({
       trust_status: status,
       is_active: isActive,
       updated_at: new Date().toISOString(),
     }).eq('id', helperProfileId);
 
     if (comment) {
-      await supabase.from('helper_applications').update({
+      await supabase.from('luma_helper_applications').update({
         admin_comment: comment,
         updated_at: new Date().toISOString(),
       }).eq('helper_profile_id', helperProfileId);

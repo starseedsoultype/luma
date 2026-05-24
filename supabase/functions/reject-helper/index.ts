@@ -17,17 +17,17 @@ serve(async (req) => {
     );
 
     const { data: app } = await supabase
-      .from('helper_applications').select('*, users(telegram_id)')
+      .from('luma_helper_applications').select('*, users(telegram_id)')
       .eq('id', applicationId).single();
     if (!app) throw new Error('Not found');
 
-    await supabase.from('helper_applications').update({
+    await supabase.from('luma_helper_applications').update({
       status: 'rejected',
       admin_comment: comment || null,
       updated_at: new Date().toISOString(),
     }).eq('id', applicationId);
 
-    await supabase.from('helper_profiles').update({
+    await supabase.from('luma_helper_profiles').update({
       trust_status: 'rejected',
       is_active: false,
       updated_at: new Date().toISOString(),

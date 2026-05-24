@@ -20,7 +20,7 @@ serve(async (req) => {
       ? new Date(Date.now() + days * 86400000).toISOString()
       : null;
 
-    await supabase.from('helper_profiles').update({
+    await supabase.from('luma_helper_profiles').update({
       is_featured: days > 0,
       featured_until: featuredUntil,
       updated_at: new Date().toISOString(),

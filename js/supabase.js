@@ -17,7 +17,7 @@ async function signInWithTelegram(initData) {
 async function getCurrentUser() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) return null;
-  const { data } = await db.from('users').select('*').eq('id', user.id).single();
+  const { data } = await db.from('luma_users').select('*').eq('id', user.id).single();
   return data;
 }
 
@@ -25,10 +25,10 @@ async function getCurrentUser() {
 
 async function getHelpers({ city, category, search, language, area } = {}) {
   let query = db
-    .from('helper_profiles')
+    .from('luma_helper_profiles')
     .select(`
       *,
-      helper_badges ( badge_key )
+      luma_luma_helper_badges ( badge_key )
     `)
     .eq('trust_status', 'approved')
     .eq('is_active', true);
@@ -50,8 +50,8 @@ async function getHelpers({ city, category, search, language, area } = {}) {
 
 async function getHelperById(id) {
   const { data, error } = await db
-    .from('helper_profiles')
-    .select(`*, helper_badges ( badge_key )`)
+    .from('luma_helper_profiles')
+    .select(`*, luma_luma_helper_badges ( badge_key )`)
     .eq('id', id)
     .single();
   if (error) throw error;
@@ -59,7 +59,7 @@ async function getHelperById(id) {
 }
 
 async function recordContactClick(helperProfileId, viewerUserId) {
-  await db.from('contact_clicks').insert({
+  await db.from('luma_contact_clicks').insert({
     helper_profile_id: helperProfileId,
     viewer_user_id: viewerUserId,
   });
@@ -76,7 +76,7 @@ async function submitHelperApplication({ profile, legalConfirmation }) {
     : null;
 
   const { data: helperProfile, error: profileError } = await db
-    .from('helper_profiles')
+    .from('luma_helper_profiles')
     .insert({
       user_id: user.id,
       display_name: profile.displayName,
@@ -97,7 +97,7 @@ async function submitHelperApplication({ profile, legalConfirmation }) {
 
   if (profileError) throw profileError;
 
-  const { error: appError } = await db.from('helper_applications').insert({
+  const { error: appError } = await db.from('luma_helper_applications').insert({
     user_id: user.id,
     helper_profile_id: helperProfile.id,
     legal_confirmation: legalConfirmation,
@@ -110,8 +110,8 @@ async function submitHelperApplication({ profile, legalConfirmation }) {
 
 async function getMyApplication(userId) {
   const { data, error } = await db
-    .from('helper_applications')
-    .select(`*, helper_profiles(*)`)
+    .from('luma_helper_applications')
+    .select(`*, luma_helper_profiles(*)`)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -140,7 +140,7 @@ async function validateInvite(code) {
 
 async function getMyInvites(userId) {
   const { data, error } = await db
-    .from('invite_codes')
+    .from('luma_invite_codes')
     .select(`
       *,
       used_user:used_by ( name, telegram_handle )
@@ -178,8 +178,8 @@ async function getFavoriteHelpers() {
   const ids = getFavorites();
   if (!ids.length) return [];
   const { data, error } = await db
-    .from('helper_profiles')
-    .select(`*, helper_badges ( badge_key )`)
+    .from('luma_helper_profiles')
+    .select(`*, luma_luma_helper_badges ( badge_key )`)
     .in('id', ids)
     .eq('trust_status', 'approved')
     .eq('is_active', true);
@@ -191,12 +191,12 @@ async function getFavoriteHelpers() {
 
 async function getPendingApplications(city) {
   let query = db
-    .from('helper_applications')
+    .from('luma_helper_applications')
     .select(`
       *,
-      helper_profiles(*),
-      users ( name, telegram_handle ),
-      approval_votes ( vote, comment, reviewer_id )
+      luma_helper_profiles(*),
+      luma_users ( name, telegram_handle ),
+      luma_approval_votes ( vote, comment, reviewer_id )
     `)
     .eq('status', 'pending');
   if (city) query = query.eq('helper_profiles.city', city);
@@ -208,8 +208,8 @@ async function getPendingApplications(city) {
 
 async function getAllApplications(city, status) {
   let query = db
-    .from('helper_applications')
-    .select(`*, helper_profiles(*), users ( name, telegram_handle )`)
+    .from('luma_helper_applications')
+    .select(`*, luma_helper_profiles(*), luma_users ( name, telegram_handle )`)
     .order('created_at', { ascending: false });
   if (city) query = query.eq('helper_profiles.city', city);
   if (status) query = query.eq('status', status);
@@ -268,14 +268,14 @@ async function adminUnbanUser(userId) {
 
 async function assignRole(userId, role) {
   const { error } = await db
-    .from('users')
+    .from('luma_users')
     .update({ role })
     .eq('id', userId);
   if (error) throw error;
 }
 
 async function assignBadge(helperProfileId, badgeKey, assignedBy) {
-  const { error } = await db.from('helper_badges').insert({
+  const { error } = await db.from('luma_helper_badges').insert({
     helper_profile_id: helperProfileId,
     badge_key: badgeKey,
     assigned_by: assignedBy,
@@ -285,7 +285,7 @@ async function assignBadge(helperProfileId, badgeKey, assignedBy) {
 
 async function removeBadge(helperProfileId, badgeKey) {
   const { error } = await db
-    .from('helper_badges')
+    .from('luma_helper_badges')
     .delete()
     .eq('helper_profile_id', helperProfileId)
     .eq('badge_key', badgeKey);
@@ -294,11 +294,11 @@ async function removeBadge(helperProfileId, badgeKey) {
 
 async function getAdminStats() {
   const [users, helpers, applications, clicks, invites] = await Promise.all([
-    db.from('users').select('id, role, created_at', { count: 'exact' }),
-    db.from('helper_profiles').select('id, category, trust_status, city', { count: 'exact' }),
-    db.from('helper_applications').select('id, status', { count: 'exact' }),
-    db.from('contact_clicks').select('id', { count: 'exact' }),
-    db.from('invite_codes').select('id, used_at', { count: 'exact' }),
+    db.from('luma_users').select('id, role, created_at', { count: 'exact' }),
+    db.from('luma_helper_profiles').select('id, category, trust_status, city', { count: 'exact' }),
+    db.from('luma_helper_applications').select('id, status', { count: 'exact' }),
+    db.from('luma_contact_clicks').select('id', { count: 'exact' }),
+    db.from('luma_invite_codes').select('id, used_at', { count: 'exact' }),
   ]);
   return {
     totalUsers: users.count,
@@ -317,17 +317,17 @@ async function getAdminStats() {
 async function getPendingForCircle() {
   const user = await getCurrentUser();
   const { data: voted } = await db
-    .from('approval_votes')
+    .from('luma_approval_votes')
     .select('application_id')
     .eq('reviewer_id', user.id);
   const votedIds = (voted || []).map(v => v.application_id);
 
   let query = db
-    .from('helper_applications')
+    .from('luma_helper_applications')
     .select(`
       *,
-      helper_profiles(*),
-      approval_votes ( vote, reviewer_id )
+      luma_helper_profiles(*),
+      luma_approval_votes ( vote, reviewer_id )
     `)
     .eq('status', 'pending');
 
@@ -341,7 +341,7 @@ async function getPendingForCircle() {
 
 async function castVote(applicationId, vote, comment) {
   const user = await getCurrentUser();
-  const { error } = await db.from('approval_votes').insert({
+  const { error } = await db.from('luma_approval_votes').insert({
     application_id: applicationId,
     reviewer_id: user.id,
     vote,
@@ -351,8 +351,8 @@ async function castVote(applicationId, vote, comment) {
 
   // Check if threshold reached
   const { data: app } = await db
-    .from('helper_applications')
-    .select('*, approval_votes(vote)')
+    .from('luma_helper_applications')
+    .select('*, luma_approval_votes(vote)')
     .eq('id', applicationId)
     .single();
 
@@ -367,7 +367,7 @@ async function castVote(applicationId, vote, comment) {
 
 async function getActiveTCCount() {
   const { count } = await db
-    .from('users')
+    .from('luma_users')
     .select('id', { count: 'exact' })
     .eq('role', 'trusted_circle');
   return count || 0;

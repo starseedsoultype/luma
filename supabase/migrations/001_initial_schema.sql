@@ -21,7 +21,7 @@ STABLE
 SECURITY DEFINER
 AS $$
   SELECT role
-  FROM public.users
+  FROM public.luma_users
   WHERE id = auth.uid()
 $$;
 
@@ -30,7 +30,7 @@ $$;
 -- TABLE: users
 -- ============================================================
 
-CREATE TABLE public.users (
+CREATE TABLE public.luma_users (
   id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   telegram_id     bigint      UNIQUE NOT NULL,
   name            text        NOT NULL,
@@ -44,19 +44,19 @@ CREATE TABLE public.users (
                               CHECK (status IN ('active', 'banned')),
   current_city    text        NOT NULL DEFAULT 'phangan',
   language        text        NOT NULL DEFAULT 'en',
-  invited_by      uuid        REFERENCES public.users(id) ON DELETE SET NULL,
+  invited_by      uuid        REFERENCES public.luma_users(id) ON DELETE SET NULL,
   created_at      timestamptz NOT NULL DEFAULT now()
 );
 
 -- Indexes
-CREATE INDEX idx_users_telegram_id ON public.users(telegram_id);
+CREATE INDEX idx_luma_users_telegram_id ON public.luma_users(telegram_id);
 
 -- RLS
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_users ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: user reads own row; admin reads all
 CREATE POLICY users_select_own
-  ON public.users
+  ON public.luma_users
   FOR SELECT
   TO authenticated
   USING (
@@ -71,7 +71,7 @@ CREATE POLICY users_select_own
 --         admin updates all rows.
 -- Column-level restriction is enforced via a separate policy for non-admins.
 CREATE POLICY users_update_own
-  ON public.users
+  ON public.luma_users
   FOR UPDATE
   TO authenticated
   USING (
@@ -85,7 +85,7 @@ CREATE POLICY users_update_own
 
 -- DELETE: admin only (service_role bypasses automatically for Edge Functions)
 CREATE POLICY users_delete_admin
-  ON public.users
+  ON public.luma_users
   FOR DELETE
   TO authenticated
   USING (get_my_role() = 'admin');
@@ -95,9 +95,9 @@ CREATE POLICY users_delete_admin
 -- TABLE: helper_profiles
 -- ============================================================
 
-CREATE TABLE public.helper_profiles (
+CREATE TABLE public.luma_helper_profiles (
   id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         uuid        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  user_id         uuid        NOT NULL REFERENCES public.luma_users(id) ON DELETE CASCADE,
   display_name    text        NOT NULL,
   category        text        NOT NULL
                               CONSTRAINT helper_profiles_category_check
@@ -126,11 +126,11 @@ CREATE TABLE public.helper_profiles (
 );
 
 -- Indexes
-CREATE INDEX idx_helper_profiles_user_id
-  ON public.helper_profiles(user_id);
+CREATE INDEX idx_luma_helper_profiles_user_id
+  ON public.luma_helper_profiles(user_id);
 
-CREATE INDEX idx_helper_profiles_city_trust_active
-  ON public.helper_profiles(city, trust_status, is_active);
+CREATE INDEX idx_luma_helper_profiles_city_trust_active
+  ON public.luma_helper_profiles(city, trust_status, is_active);
 
 -- updated_at trigger
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -143,13 +143,13 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER trg_helper_profiles_updated_at
-  BEFORE UPDATE ON public.helper_profiles
+CREATE TRIGGER trg_luma_helper_profiles_updated_at
+  BEFORE UPDATE ON public.luma_helper_profiles
   FOR EACH ROW
   EXECUTE FUNCTION set_updated_at();
 
 -- RLS
-ALTER TABLE public.helper_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_helper_profiles ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: client + helper see only approved + active profiles (work_type column is
 --         returned but callers must strip it; if stricter isolation is needed, use
@@ -157,7 +157,7 @@ ALTER TABLE public.helper_profiles ENABLE ROW LEVEL SECURITY;
 --         trusted_circle sees approved OR pending.
 --         admin sees all.
 CREATE POLICY helper_profiles_select_approved
-  ON public.helper_profiles
+  ON public.luma_helper_profiles
   FOR SELECT
   TO authenticated
   USING (
@@ -176,7 +176,7 @@ CREATE POLICY helper_profiles_select_approved
 -- INSERT: user inserts own profile; trust_status and is_active are forced to safe
 --         defaults by WITH CHECK — prevents a user from self-approving on insert.
 CREATE POLICY helper_profiles_insert_own
-  ON public.helper_profiles
+  ON public.luma_helper_profiles
   FOR INSERT
   TO authenticated
   WITH CHECK (
@@ -189,7 +189,7 @@ CREATE POLICY helper_profiles_insert_own
 --         cannot flip trust_status or is_active on their own row.
 --         admin can update any row without restriction.
 CREATE POLICY helper_profiles_update_own_pending
-  ON public.helper_profiles
+  ON public.luma_helper_profiles
   FOR UPDATE
   TO authenticated
   USING (
@@ -210,7 +210,7 @@ CREATE POLICY helper_profiles_update_own_pending
 
 -- DELETE: admin only
 CREATE POLICY helper_profiles_delete_admin
-  ON public.helper_profiles
+  ON public.luma_helper_profiles
   FOR DELETE
   TO authenticated
   USING (get_my_role() = 'admin');
@@ -220,10 +220,10 @@ CREATE POLICY helper_profiles_delete_admin
 -- TABLE: helper_applications
 -- ============================================================
 
-CREATE TABLE public.helper_applications (
+CREATE TABLE public.luma_helper_applications (
   id                 uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id            uuid        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  helper_profile_id  uuid        NOT NULL REFERENCES public.helper_profiles(id) ON DELETE CASCADE,
+  user_id            uuid        NOT NULL REFERENCES public.luma_users(id) ON DELETE CASCADE,
+  helper_profile_id  uuid        NOT NULL REFERENCES public.luma_helper_profiles(id) ON DELETE CASCADE,
   status             text        NOT NULL DEFAULT 'pending'
                                  CONSTRAINT helper_applications_status_check
                                  CHECK (status IN ('pending', 'approved', 'rejected')),
@@ -234,26 +234,26 @@ CREATE TABLE public.helper_applications (
 );
 
 -- Indexes
-CREATE INDEX idx_helper_applications_user_id
-  ON public.helper_applications(user_id);
+CREATE INDEX idx_luma_helper_applications_user_id
+  ON public.luma_helper_applications(user_id);
 
-CREATE INDEX idx_helper_applications_status
-  ON public.helper_applications(status);
+CREATE INDEX idx_luma_helper_applications_status
+  ON public.luma_helper_applications(status);
 
 -- updated_at trigger
-CREATE TRIGGER trg_helper_applications_updated_at
-  BEFORE UPDATE ON public.helper_applications
+CREATE TRIGGER trg_luma_helper_applications_updated_at
+  BEFORE UPDATE ON public.luma_helper_applications
   FOR EACH ROW
   EXECUTE FUNCTION set_updated_at();
 
 -- RLS
-ALTER TABLE public.helper_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_helper_applications ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: user reads own applications;
 --         trusted_circle reads pending applications (for voting);
 --         admin reads all.
 CREATE POLICY helper_applications_select_own
-  ON public.helper_applications
+  ON public.luma_helper_applications
   FOR SELECT
   TO authenticated
   USING (
@@ -264,7 +264,7 @@ CREATE POLICY helper_applications_select_own
 
 -- INSERT: user inserts own application
 CREATE POLICY helper_applications_insert_own
-  ON public.helper_applications
+  ON public.luma_helper_applications
   FOR INSERT
   TO authenticated
   WITH CHECK (user_id = auth.uid());
@@ -272,7 +272,7 @@ CREATE POLICY helper_applications_insert_own
 -- UPDATE: admin only (via service_role in Edge Functions — bypasses RLS, but
 --         an explicit admin policy is included for direct admin DB access)
 CREATE POLICY helper_applications_update_admin
-  ON public.helper_applications
+  ON public.luma_helper_applications
   FOR UPDATE
   TO authenticated
   USING (get_my_role() = 'admin')
@@ -280,7 +280,7 @@ CREATE POLICY helper_applications_update_admin
 
 -- DELETE: admin only
 CREATE POLICY helper_applications_delete_admin
-  ON public.helper_applications
+  ON public.luma_helper_applications
   FOR DELETE
   TO authenticated
   USING (get_my_role() = 'admin');
@@ -290,10 +290,10 @@ CREATE POLICY helper_applications_delete_admin
 -- TABLE: approval_votes
 -- ============================================================
 
-CREATE TABLE public.approval_votes (
+CREATE TABLE public.luma_approval_votes (
   id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  application_id  uuid        NOT NULL REFERENCES public.helper_applications(id) ON DELETE CASCADE,
-  reviewer_id     uuid        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  application_id  uuid        NOT NULL REFERENCES public.luma_helper_applications(id) ON DELETE CASCADE,
+  reviewer_id     uuid        NOT NULL REFERENCES public.luma_users(id) ON DELETE CASCADE,
   vote            text        NOT NULL
                               CONSTRAINT approval_votes_vote_check
                               CHECK (vote IN ('approve', 'reject', 'skip')),
@@ -303,15 +303,15 @@ CREATE TABLE public.approval_votes (
 );
 
 -- Indexes
-CREATE INDEX idx_approval_votes_application_id
-  ON public.approval_votes(application_id);
+CREATE INDEX idx_luma_approval_votes_application_id
+  ON public.luma_approval_votes(application_id);
 
 -- RLS
-ALTER TABLE public.approval_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_approval_votes ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: reviewer reads own votes; admin reads all
 CREATE POLICY approval_votes_select_own
-  ON public.approval_votes
+  ON public.luma_approval_votes
   FOR SELECT
   TO authenticated
   USING (
@@ -322,7 +322,7 @@ CREATE POLICY approval_votes_select_own
 -- INSERT: trusted_circle members insert own votes;
 --         UNIQUE constraint on (application_id, reviewer_id) enforces one vote per reviewer
 CREATE POLICY approval_votes_insert_trusted_circle
-  ON public.approval_votes
+  ON public.luma_approval_votes
   FOR INSERT
   TO authenticated
   WITH CHECK (
@@ -334,7 +334,7 @@ CREATE POLICY approval_votes_insert_trusted_circle
 
 -- DELETE: admin only
 CREATE POLICY approval_votes_delete_admin
-  ON public.approval_votes
+  ON public.luma_approval_votes
   FOR DELETE
   TO authenticated
   USING (get_my_role() = 'admin');
@@ -344,36 +344,36 @@ CREATE POLICY approval_votes_delete_admin
 -- TABLE: helper_badges
 -- ============================================================
 
-CREATE TABLE public.helper_badges (
+CREATE TABLE public.luma_helper_badges (
   id                uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  helper_profile_id uuid        NOT NULL REFERENCES public.helper_profiles(id) ON DELETE CASCADE,
+  helper_profile_id uuid        NOT NULL REFERENCES public.luma_helper_profiles(id) ON DELETE CASCADE,
   badge_key         text        NOT NULL
                                 CONSTRAINT helper_badges_badge_key_check
                                 CHECK (badge_key IN ('verified', 'family', 'villas', 'english', 'fast', 'recommended')),
-  assigned_by       uuid        REFERENCES public.users(id) ON DELETE SET NULL,
+  assigned_by       uuid        REFERENCES public.luma_users(id) ON DELETE SET NULL,
   created_at        timestamptz NOT NULL DEFAULT now()
 );
 
 -- RLS
-ALTER TABLE public.helper_badges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_helper_badges ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: all authenticated users
 CREATE POLICY helper_badges_select_authenticated
-  ON public.helper_badges
+  ON public.luma_helper_badges
   FOR SELECT
   TO authenticated
   USING (true);
 
 -- INSERT: admin only (service_role bypasses for Edge Function use)
 CREATE POLICY helper_badges_insert_admin
-  ON public.helper_badges
+  ON public.luma_helper_badges
   FOR INSERT
   TO authenticated
   WITH CHECK (get_my_role() = 'admin');
 
 -- DELETE: admin only
 CREATE POLICY helper_badges_delete_admin
-  ON public.helper_badges
+  ON public.luma_helper_badges
   FOR DELETE
   TO authenticated
   USING (get_my_role() = 'admin');
@@ -383,29 +383,29 @@ CREATE POLICY helper_badges_delete_admin
 -- TABLE: invite_codes
 -- ============================================================
 
-CREATE TABLE public.invite_codes (
+CREATE TABLE public.luma_invite_codes (
   id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   code        text        UNIQUE NOT NULL,
   city        text        NOT NULL DEFAULT 'phangan',
-  created_by  uuid        REFERENCES public.users(id) ON DELETE SET NULL,
-  used_by     uuid        REFERENCES public.users(id) ON DELETE SET NULL,
+  created_by  uuid        REFERENCES public.luma_users(id) ON DELETE SET NULL,
+  used_by     uuid        REFERENCES public.luma_users(id) ON DELETE SET NULL,
   used_at     timestamptz,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
 -- Indexes
-CREATE INDEX idx_invite_codes_code
-  ON public.invite_codes(code);
+CREATE INDEX idx_luma_invite_codes_code
+  ON public.luma_invite_codes(code);
 
-CREATE INDEX idx_invite_codes_created_by
-  ON public.invite_codes(created_by);
+CREATE INDEX idx_luma_invite_codes_created_by
+  ON public.luma_invite_codes(created_by);
 
 -- RLS
-ALTER TABLE public.invite_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_invite_codes ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: user reads codes they created; admin reads all
 CREATE POLICY invite_codes_select_own
-  ON public.invite_codes
+  ON public.luma_invite_codes
   FOR SELECT
   TO authenticated
   USING (
@@ -421,7 +421,7 @@ CREATE POLICY invite_codes_select_own
 
 -- DELETE: admin only
 CREATE POLICY invite_codes_delete_admin
-  ON public.invite_codes
+  ON public.luma_invite_codes
   FOR DELETE
   TO authenticated
   USING (get_my_role() = 'admin');
@@ -431,26 +431,26 @@ CREATE POLICY invite_codes_delete_admin
 -- TABLE: contact_clicks (analytics)
 -- ============================================================
 
-CREATE TABLE public.contact_clicks (
+CREATE TABLE public.luma_contact_clicks (
   id                uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  helper_profile_id uuid        NOT NULL REFERENCES public.helper_profiles(id) ON DELETE CASCADE,
-  viewer_user_id    uuid        REFERENCES public.users(id) ON DELETE SET NULL,
+  helper_profile_id uuid        NOT NULL REFERENCES public.luma_helper_profiles(id) ON DELETE CASCADE,
+  viewer_user_id    uuid        REFERENCES public.luma_users(id) ON DELETE SET NULL,
   created_at        timestamptz NOT NULL DEFAULT now()
 );
 
 -- RLS
-ALTER TABLE public.contact_clicks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.luma_contact_clicks ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: admin only
 CREATE POLICY contact_clicks_select_admin
-  ON public.contact_clicks
+  ON public.luma_contact_clicks
   FOR SELECT
   TO authenticated
   USING (get_my_role() = 'admin');
 
 -- INSERT: any authenticated user; viewer_user_id must match auth.uid()
 CREATE POLICY contact_clicks_insert_authenticated
-  ON public.contact_clicks
+  ON public.luma_contact_clicks
   FOR INSERT
   TO authenticated
   WITH CHECK (

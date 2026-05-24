@@ -17,23 +17,23 @@ serve(async (req) => {
     );
 
     const { data: app } = await supabase
-      .from('helper_applications').select('*, helper_profiles(*), users(telegram_id)')
+      .from('luma_helper_applications').select('*, helper_profiles(*), users(telegram_id)')
       .eq('id', applicationId).single();
     if (!app) throw new Error('Application not found');
 
-    await supabase.from('helper_applications').update({
+    await supabase.from('luma_helper_applications').update({
       status: 'approved',
       admin_comment: comment || null,
       updated_at: new Date().toISOString(),
     }).eq('id', applicationId);
 
-    await supabase.from('helper_profiles').update({
+    await supabase.from('luma_helper_profiles').update({
       trust_status: 'approved',
       is_active: true,
       updated_at: new Date().toISOString(),
     }).eq('id', app.helper_profile_id);
 
-    await supabase.from('users').update({ role: 'helper' }).eq('id', app.user_id);
+    await supabase.from('luma_users').update({ role: 'helper' }).eq('id', app.user_id);
 
     // Notify helper
     if (app.users?.telegram_id) {

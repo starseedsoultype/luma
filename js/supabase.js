@@ -153,30 +153,29 @@ async function getMyApplication(userId) {
 // ─── Invites ─────────────────────────────────────────────────────────────────
 
 async function generateInvite(city) {
-  const { data: { session } } = await db.auth.getSession();
-  const token = session?.access_token;
+  const { data, error } = await db.functions.invoke('generate-invite', {
+    body: { city },
+  });
 
-  const res = await fetch(
-    `${CONFIG.supabaseUrl}/functions/v1/generate-invite`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'apikey': CONFIG.supabaseAnonKey,
-      },
-      body: JSON.stringify({ city }),
+  if (error) {
+    // FunctionsHttpError carries the raw Response in error.context
+    // Parse it to get our debug snapshot from the 400 body
+    let responseBody = null;
+    try {
+      responseBody = await error.context?.json?.();
+    } catch (_) {
+      try {
+        const text = await error.context?.text?.();
+        responseBody = { error: text };
+      } catch (_2) {}
     }
-  );
 
-  const data = await res.json();
-  if (!res.ok) {
-    // Attach full response body so caller can surface debug info
-    const err = new Error(data?.error || 'generate-invite failed');
-    err.debug = data?.debug || null;
-    err.rawData = data;
-    throw err;
+    const richErr = new Error(responseBody?.error || error.message);
+    richErr.debug = responseBody?.debug || null;
+    richErr.rawData = responseBody;
+    throw richErr;
   }
+
   return data;
 }
 

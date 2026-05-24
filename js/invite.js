@@ -29,7 +29,7 @@ async function renderInviteHistory() {
 
 function renderInviteRow(invite) {
   const botUsername = CONFIG.botUsername;
-  const link = `https://t.me/${botUsername}?start=invite_${invite.code}`;
+  const link = `https://t.me/${botUsername}?startapp=invite_${invite.code}`;
   const used = !!invite.used_at;
   const usedBy = invite.used_user?.name || invite.used_user?.telegram_handle || '';
 
@@ -72,7 +72,7 @@ async function handleGenerateInvite() {
   try {
     const result = await generateInvite(App.city);
     const botUsername = CONFIG.botUsername;
-    const link = `https://t.me/${botUsername}?start=invite_${result.code}`;
+    const link = `https://t.me/${botUsername}?startapp=invite_${result.code}`;
 
     showNewInviteLink(link);
     renderInviteHistory();
@@ -80,19 +80,7 @@ async function handleGenerateInvite() {
   } catch (e) {
     console.error('Generate invite failed', e);
     tg?.HapticFeedback?.notificationOccurred('error');
-
-    // Show full debug info inline in the page (works even if tg.showAlert unavailable)
-    const debugStr = e.debug
-      ? JSON.stringify(e.debug, null, 2)
-      : (e.rawData ? JSON.stringify(e.rawData, null, 2) : e.message);
-    const existing = document.getElementById('invite-debug-output');
-    const box = existing || document.createElement('div');
-    box.id = 'invite-debug-output';
-    box.style.cssText = 'margin-top:16px;padding:12px;background:#1a1a2e;color:#ff6b6b;font-size:11px;border-radius:8px;white-space:pre-wrap;word-break:break-all;border:1px solid #ff6b6b';
-    box.textContent = `ERROR: ${e.message}\n\nDEBUG:\n${debugStr}`;
-    if (!existing) {
-      document.getElementById('generate-invite-btn')?.after(box);
-    }
+    tg?.showAlert?.(e.message || 'Failed to generate invite');
   } finally {
     btn.disabled = false;
     btn.textContent = t('invite_generate');

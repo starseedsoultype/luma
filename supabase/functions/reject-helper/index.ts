@@ -10,15 +10,46 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { applicationId, comment } = await req.json();
+    // Auth: caller must be admin or trusted_circle
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const anonClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user } } = await anonClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    const { data: caller } = await supabase
+      .from('luma_users').select('role').eq('id', user.id).single();
+    if (caller?.role !== 'admin' && caller?.role !== 'trusted_circle') {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { applicationId, comment } = await req.json();
+
     const { data: app } = await supabase
-      .from('luma_helper_applications').select('*, users(telegram_id)')
-      .eq('id', applicationId).single();
+      .from('luma_helper_applications')
+      .select('*, luma_users(telegram_id)')
+      .eq('id', applicationId)
+      .single();
     if (!app) throw new Error('Not found');
 
     await supabase.from('luma_helper_applications').update({
@@ -33,11 +64,11 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }).eq('id', app.helper_profile_id);
 
-    if (app.users?.telegram_id) {
+    if (app.luma_users?.telegram_id) {
       const msg = comment
         ? `Your Luma application was not approved. Note: ${comment}`
         : `Your Luma application was not approved at this time.`;
-      await notifyTelegram(app.users.telegram_id, msg);
+      await notifyTelegram(app.luma_users.telegram_id, msg);
     }
 
     return new Response(JSON.stringify({ success: true }), {

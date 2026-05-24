@@ -314,10 +314,17 @@ function renderHelperDetail(helper) {
   const page = document.getElementById('page-helper');
   if (!page) return;
 
-  page.querySelector('.helper-detail-name')?.textContent && (page.querySelector('.helper-detail-name').textContent = helper.display_name);
-  page.querySelector('.helper-detail-category')?.textContent && (page.querySelector('.helper-detail-category').textContent = t(`cat_${helper.category}`));
-  page.querySelector('.helper-detail-area')?.textContent && (page.querySelector('.helper-detail-area').textContent = helper.location_area || '');
-  page.querySelector('.helper-detail-bio')?.textContent && (page.querySelector('.helper-detail-bio').textContent = helper.bio || '');
+  const nameEl = page.querySelector('.helper-detail-name');
+  if (nameEl) nameEl.textContent = helper.display_name || '';
+
+  const catEl = page.querySelector('.helper-detail-category');
+  if (catEl) catEl.textContent = t(`cat_${helper.category}`);
+
+  const areaEl = page.querySelector('.helper-detail-area');
+  if (areaEl) areaEl.textContent = helper.location_area || '';
+
+  const bioEl = page.querySelector('.helper-detail-bio');
+  if (bioEl) bioEl.textContent = helper.bio || '';
 
   const photo = page.querySelector('.helper-detail-photo');
   if (photo) {

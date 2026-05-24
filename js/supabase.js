@@ -229,7 +229,7 @@ async function getPendingApplications(city) {
       luma_approval_votes ( vote, comment, reviewer_id )
     `)
     .eq('status', 'pending');
-  if (city) query = query.eq('helper_profiles.city', city);
+  if (city) query = query.eq('luma_helper_profiles.city', city);
   query = query.order('created_at', { ascending: true });
   const { data, error } = await query;
   if (error) throw error;
@@ -241,7 +241,7 @@ async function getAllApplications(city, status) {
     .from('luma_helper_applications')
     .select(`*, luma_helper_profiles(*), luma_users ( name, telegram_handle )`)
     .order('created_at', { ascending: false });
-  if (city) query = query.eq('helper_profiles.city', city);
+  if (city) query = query.eq('luma_helper_profiles.city', city);
   if (status) query = query.eq('status', status);
   const { data, error } = await query;
   if (error) throw error;
@@ -386,8 +386,8 @@ async function castVote(applicationId, vote, comment) {
     .eq('id', applicationId)
     .single();
 
-  const approveCount = (app.approval_votes || []).filter(v => v.vote === 'approve').length;
-  const rejectCount = (app.approval_votes || []).filter(v => v.vote === 'reject').length;
+  const approveCount = (app.luma_approval_votes || []).filter(v => v.vote === 'approve').length;
+  const rejectCount = (app.luma_approval_votes || []).filter(v => v.vote === 'reject').length;
   const tcCount = await getActiveTCCount();
   const needed = getRequiredVotes(tcCount);
 

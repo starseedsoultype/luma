@@ -5,6 +5,7 @@ const TRANSLATIONS = {
     nav_favorites: 'Saved',
     nav_invite: 'Invite',
     nav_profile: 'Profile',
+    header_subtitle: 'Trusted help nearby',
 
     // Categories
     cat_all: 'All',
@@ -63,14 +64,16 @@ const TRANSLATIONS = {
     // Invite
     invite_title: 'Invite a Friend',
     invite_subtitle: 'Share access to Luma with someone you trust.',
-    invite_generate: 'Generate Invite Link',
-    invite_copy: 'Copy Link',
+    invite_generate: 'Generate invite link',
+    invite_copy: 'Copy',
     invite_copied: 'Copied!',
     invite_share: 'Share via Telegram',
     invite_history: 'My Invites',
     invite_used: 'Used',
     invite_pending_invite: 'Pending',
     invite_used_by: 'Used by',
+    invite_code_label: 'Invite code',
+    invite_link_created: 'Invite link ready',
 
     // Invite gate
     gate_title: 'Private Network',
@@ -79,7 +82,8 @@ const TRANSLATIONS = {
 
     // Favorites
     favorites_title: 'Saved',
-    favorites_empty: 'You haven\'t saved anyone yet. Tap the bookmark on any helper card.',
+    favorites_empty: 'No saved helpers yet',
+    favorites_empty_text: 'Tap the bookmark on any helper card to save it here.',
 
     // Profile
     profile_title: 'Profile',
@@ -91,6 +95,8 @@ const TRANSLATIONS = {
     profile_status_rejected: 'Not Approved',
     profile_status_hidden: 'Hidden',
     profile_edit: 'Edit Profile',
+    profile_helper_cta_title: 'Become a trusted helper',
+    profile_helper_cta_text: 'Offer your services to people in the Luma circle.',
 
     // Admin
     admin_title: 'Admin Panel',
@@ -144,7 +150,9 @@ const TRANSLATIONS = {
 
     // Search
     search_placeholder: 'Search by name, area...',
-    search_no_results: 'No helpers found. Try a different filter.',
+    search_no_results: 'No helpers in this category yet',
+    search_no_results_text: 'Try another filter or check back later.',
+    search_show_all: 'Show all helpers',
 
     // Loading / errors
     loading: 'Loading...',
@@ -160,6 +168,7 @@ const TRANSLATIONS = {
     nav_favorites: 'Сохранённые',
     nav_invite: 'Пригласить',
     nav_profile: 'Профиль',
+    header_subtitle: 'Проверенная помощь рядом',
 
     // Categories
     cat_all: 'Все',
@@ -218,7 +227,7 @@ const TRANSLATIONS = {
     // Invite
     invite_title: 'Пригласить',
     invite_subtitle: 'Дайте доступ к Luma человеку, которому доверяете.',
-    invite_generate: 'Создать ссылку',
+    invite_generate: 'Создать приглашение',
     invite_copy: 'Скопировать',
     invite_copied: 'Скопировано!',
     invite_share: 'Поделиться в Telegram',
@@ -226,6 +235,8 @@ const TRANSLATIONS = {
     invite_used: 'Использовано',
     invite_pending_invite: 'Ожидает',
     invite_used_by: 'Использовал',
+    invite_code_label: 'Код приглашения',
+    invite_link_created: 'Ссылка готова',
 
     // Invite gate
     gate_title: 'Закрытая сеть',
@@ -234,7 +245,8 @@ const TRANSLATIONS = {
 
     // Favorites
     favorites_title: 'Сохранённые',
-    favorites_empty: 'Вы ещё никого не сохранили. Нажмите закладку на карточке помощника.',
+    favorites_empty: 'Пока нет сохранённых помощников',
+    favorites_empty_text: 'Нажмите закладку на карточке помощника, чтобы сохранить его здесь.',
 
     // Profile
     profile_title: 'Профиль',
@@ -246,6 +258,8 @@ const TRANSLATIONS = {
     profile_status_rejected: 'Не одобрен',
     profile_status_hidden: 'Скрыт',
     profile_edit: 'Редактировать',
+    profile_helper_cta_title: 'Стать проверенным помощником',
+    profile_helper_cta_text: 'Предложите свои услуги людям из круга Luma.',
 
     // Admin
     admin_title: 'Панель администратора',
@@ -299,7 +313,9 @@ const TRANSLATIONS = {
 
     // Search
     search_placeholder: 'Поиск по имени, району...',
-    search_no_results: 'Помощников не найдено. Попробуйте другой фильтр.',
+    search_no_results: 'В этой категории пока нет помощников',
+    search_no_results_text: 'Попробуйте другой фильтр или загляните позже.',
+    search_show_all: 'Показать всех',
 
     // Loading / errors
     loading: 'Загрузка...',

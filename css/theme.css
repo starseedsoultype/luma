@@ -8,31 +8,31 @@
    ------------------------------------------------------------ */
 :root {
   /* Background */
-  --bg:              #EEF6FF;
-  --bg-subtle:       #E3F0FF;
+  --bg:              #EEF7F8;
+  --bg-subtle:       #E0F3F2;
 
   /* Surface */
   --surface:         #FFFFFF;
 
   /* Accent */
-  --accent:          #2B85E8;
-  --accent-hover:    #1A6FCC;
-  --accent-light:    #EBF4FF;
-  --accent-glow:     rgba(43, 133, 232, 0.18);
+  --accent:          #1F7A8C;
+  --accent-hover:    #12606E;
+  --accent-light:    #E0F3F2;
+  --accent-glow:     rgba(31, 122, 140, 0.18);
 
   /* Text */
   --text-primary:    #0F1F33;
-  --text-secondary:  #4A6580;
-  --text-muted:      #8AAAC4;
+  --text-secondary:  #4A6572;
+  --text-muted:      #8AA6B0;
 
   /* Border */
-  --border:          #D4E9FF;
+  --border:          #D8E8EC;
 
   /* Shadows */
-  --shadow-sm:       0 1px 4px rgba(43, 133, 232, 0.08);
-  --shadow-md:       0 4px 16px rgba(43, 133, 232, 0.12);
-  --shadow-lg:       0 8px 32px rgba(43, 133, 232, 0.16);
-  --featured-glow:   0 0 0 2px #2B85E8, 0 4px 20px rgba(43, 133, 232, 0.28);
+  --shadow-sm:       0 1px 4px rgba(31, 122, 140, 0.08);
+  --shadow-md:       0 4px 16px rgba(31, 122, 140, 0.12);
+  --shadow-lg:       0 8px 32px rgba(31, 122, 140, 0.16);
+  --featured-glow:   0 0 0 2px #1F7A8C, 0 4px 20px rgba(31, 122, 140, 0.24);
 
   /* Border Radius */
   --radius-sm:       8px;

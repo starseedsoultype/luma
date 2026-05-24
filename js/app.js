@@ -35,7 +35,11 @@ async function initApp() {
   try {
     App.user = await authUser();
   } catch (e) {
-    console.error('Auth failed full object', e);
+    console.error('Auth failed', e);
+    const code = e?.code || e?.message || '';
+    if (code === 'invite_required') { showGate('invite'); return; }
+    if (code === 'banned') { showGate('banned'); return; }
+    if (code === 'pending') { showGate('invite', 'pending'); return; }
     const message =
       e?.message ||
       e?.error_description ||
@@ -45,18 +49,7 @@ async function initApp() {
     return;
   }
 
-  // Invite gate check
-  const cityConfig = getCity(App.city);
-  if (cityConfig.is_private && (!App.user || App.user.status !== 'active')) {
-    const inviteCode = startParam.startsWith('invite_') ? startParam.replace('invite_', '') : null;
-    if (inviteCode) {
-      await handleInviteActivation(inviteCode);
-    } else {
-      showGate('invite');
-      return;
-    }
-  }
-
+  // Gate checks now handled by validate-telegram Edge Function (returns 403 with code)
   if (App.user?.status === 'banned') {
     showGate('banned');
     return;

@@ -51,52 +51,181 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    // OWNER BYPASS — real user from luma_users, no Supabase Auth session
+    const { initData } = await req.json();
+    if (!initData) throw new Error('no initData');
+
+    const botToken = Deno.env.get('LUMA_BOT_TOKEN')!;
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
+    if (!botToken) throw new Error('LUMA_BOT_TOKEN not configured');
+
+    // 1. Verify Telegram signature
+    const validated = await validateTelegramInitData(initData, botToken);
+    if (!validated) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid Telegram signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const tgUser = JSON.parse(validated['user']);
+    const telegramId: number = tgUser.id;
+    const startParam: string = validated['start_param'] || '';
+    const inviteCode = startParam.startsWith('invite_') ? startParam.slice(7) : null;
+    const isAdmin = ADMIN_TELEGRAM_IDS.includes(telegramId);
+    const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ')
+      || tgUser.username || String(telegramId);
+    const language = tgUser.language_code === 'ru' ? 'ru' : 'en';
+
+    // All DB via raw REST — Supabase client gets permission denied for PostgREST
+    const restHeaders: Record<string, string> = {
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+    };
+
+    // 2. Look up existing user by telegram_id
+    const userRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/luma_users?telegram_id=eq.${telegramId}&select=*`,
+      { headers: restHeaders },
+    );
+    const users = await userRes.json();
+    if (!userRes.ok) throw new Error('DB lookup failed: ' + JSON.stringify(users));
+
+    let user = users[0] || null;
+
+    if (user) {
+      // 3a. User exists — check status
+      if (user.status === 'banned') {
+        return new Response(
+          JSON.stringify({ error: 'banned' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      if (user.status !== 'active' && !isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'pending' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      // Update profile fields
+      const updates: Record<string, unknown> = { name, telegram_handle: tgUser.username || null, language };
+      if (isAdmin) { updates.role = 'admin'; updates.status = 'active'; }
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/luma_users?telegram_id=eq.${telegramId}`,
+        { method: 'PATCH', headers: restHeaders, body: JSON.stringify(updates) },
+      );
+      user = { ...user, ...updates };
+
+      return new Response(
+        JSON.stringify({ bypass: true, user }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // 3b. User not found
+    if (!isAdmin && !inviteCode) {
+      return new Response(
+        JSON.stringify({ error: 'invite_required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // 4. Validate invite (non-admin)
+    let invite: Record<string, unknown> | null = null;
+    if (!isAdmin && inviteCode) {
+      const inviteRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/luma_invite_codes?code=eq.${inviteCode}&used_at=is.null&select=*`,
+        { headers: restHeaders },
+      );
+      const invites = await inviteRes.json();
+      if (!inviteRes.ok || !invites.length) {
+        return new Response(
+          JSON.stringify({ error: 'invite_required', detail: 'invalid_or_used' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      invite = invites[0];
+    }
+
+    // 5. Create Supabase Auth user (uses auth API, not PostgREST — works fine)
     const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
-      global: { headers: { Authorization: `Bearer ${SERVICE_ROLE_KEY}` } },
+    });
+    const email = `tg_${telegramId}@luma.app`;
+    const password = await derivePassword(telegramId, botToken);
+
+    let authUserId: string;
+    const { data: authData, error: authErr } = await adminClient.auth.admin.createUser({
+      email, password, email_confirm: true,
     });
 
-    const { data: realUser, error: userErr } = await adminClient
-      .from('luma_users')
-      .select('*')
-      .eq('telegram_id', 656578642)
-      .maybeSingle();
+    if (authData?.user?.id) {
+      authUserId = authData.user.id;
+    } else if (authErr?.message?.includes('already')) {
+      // Auth user exists, sign in to get id
+      const signInRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+        body: JSON.stringify({ email, password }),
+      });
+      const signInData = await signInRes.json();
+      if (!signInData.user?.id) throw new Error('Auth lookup failed: ' + JSON.stringify(signInData));
+      authUserId = signInData.user.id;
+    } else if (authErr) {
+      throw authErr;
+    } else {
+      throw new Error('Auth user creation returned no id');
+    }
 
-    if (userErr) throw userErr;
-
-    return new Response(JSON.stringify({
-      bypass: true,
-      user: realUser,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // 6. Create luma_users row via raw REST
+    const createRes = await fetch(`${SUPABASE_URL}/rest/v1/luma_users`, {
+      method: 'POST',
+      headers: { ...restHeaders, Prefer: 'return=representation' },
+      body: JSON.stringify({
+        id: authUserId,
+        telegram_id: telegramId,
+        name,
+        telegram_handle: tgUser.username || null,
+        current_city: (invite?.city as string) || 'phangan',
+        language,
+        role: isAdmin ? 'admin' : 'client',
+        status: 'active',
+      }),
     });
+    const createdArr = await createRes.json();
+    if (!createRes.ok) throw new Error('User insert failed: ' + JSON.stringify(createdArr));
+    user = createdArr[0];
+
+    // 7. Mark invite used
+    if (invite) {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/luma_invite_codes?id=eq.${invite.id}`,
+        {
+          method: 'PATCH',
+          headers: restHeaders,
+          body: JSON.stringify({ used_at: new Date().toISOString(), used_by: user.id }),
+        },
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ bypass: true, user }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
 
   } catch (err) {
     console.error('FULL ERROR', err);
-
     return new Response(
       JSON.stringify({
-        success: false,
-        error:
-          err instanceof Error
-            ? {
-                message: err.message,
-                stack: err.stack,
-                name: err.name,
-              }
-            : err,
+        error: err instanceof Error
+          ? { message: err.message, stack: err.stack, name: err.name }
+          : err,
       }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      },
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });

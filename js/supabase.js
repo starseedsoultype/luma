@@ -15,13 +15,12 @@ async function signInWithTelegram(initData) {
   const data = await res.json();
 
   if (!res.ok) {
-    console.error('validate-telegram failed', data);
-    const errMsg = typeof data.error === 'string'
-      ? data.error
-      : data.error?.message
-        ? `${data.error.message}\n${data.error.stack || ''}`
-        : JSON.stringify(data, null, 2);
-    throw new Error(errMsg);
+    console.error('validate-telegram failed', res.status, data);
+    // Throw with a code so app.js can route to the right gate screen
+    const code = typeof data.error === 'string' ? data.error : data.error?.message || 'error';
+    const err = new Error(code);
+    err.code = code;
+    throw err;
   }
 
   console.log('validate-telegram ok', {

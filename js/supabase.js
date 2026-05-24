@@ -16,7 +16,12 @@ async function signInWithTelegram(initData) {
 
   if (!res.ok) {
     console.error('validate-telegram failed', data);
-    throw new Error(data.error || 'Telegram auth failed');
+    const errMsg = typeof data.error === 'string'
+      ? data.error
+      : data.error?.message
+        ? `${data.error.message}\n${data.error.stack || ''}`
+        : JSON.stringify(data, null, 2);
+    throw new Error(errMsg);
   }
 
   console.log('validate-telegram ok', {
@@ -27,25 +32,7 @@ async function signInWithTelegram(initData) {
     userRole: data.user?.role,
   });
 
-  const { data: sessionData, error: sessionError } = await db.auth.setSession({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-  });
-
-  if (sessionError) {
-    console.error('setSession failed full object', sessionError);
-    throw new Error(
-      sessionError.message ||
-      sessionError.error_description ||
-      JSON.stringify(sessionError, Object.getOwnPropertyNames(sessionError))
-    );
-  }
-
-  console.log('setSession ok', {
-    hasSession: !!sessionData.session,
-    hasUser: !!sessionData.user,
-  });
-
+  // MOCK TEST — skip setSession
   return data.user;
 }
 

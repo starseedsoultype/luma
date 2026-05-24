@@ -258,9 +258,20 @@ function loadProfilePage() {
   const el = document.getElementById('page-profile');
   if (!el) return;
 
-  el.querySelector('.profile-name')?.textContent && (el.querySelector('.profile-name').textContent = u.name);
-  el.querySelector('.profile-handle')?.textContent && (el.querySelector('.profile-handle').textContent = `@${u.telegram_handle || ''}`);
-  el.querySelector('.profile-role')?.textContent && (el.querySelector('.profile-role').textContent = u.role);
+  const nameEl = el.querySelector('.profile-name');
+  if (nameEl) nameEl.textContent = u.name || '';
+
+  const handleEl = el.querySelector('.profile-handle');
+  if (handleEl) handleEl.textContent = u.telegram_handle ? `@${u.telegram_handle}` : '';
+
+  const roleEl = el.querySelector('.profile-role');
+  if (roleEl) roleEl.textContent = u.role || '';
+
+  const cityEl = document.getElementById('profile-city-val');
+  if (cityEl) cityEl.textContent = u.current_city || '';
+
+  const langEl = document.getElementById('profile-lang-val');
+  if (langEl) langEl.textContent = u.language ? u.language.toUpperCase() : '';
 
   loadMyApplication();
 }

@@ -39,8 +39,8 @@ async function initApp() {
     const message =
       e?.message ||
       e?.error_description ||
-      e?.error ||
-      JSON.stringify(e, Object.getOwnPropertyNames(e));
+      (typeof e?.error === 'string' ? e.error : null) ||
+      JSON.stringify(e, Object.getOwnPropertyNames(e), 2);
     showGate('error', message);
     return;
   }
@@ -122,7 +122,12 @@ function showGate(type, errorCode) {
     body.textContent = 'Your account has been suspended.';
   } else {
     title.textContent = 'Error';
-    body.textContent = errorCode || t('error_generic');
+    body.textContent =
+      typeof errorCode === 'string'
+        ? errorCode
+        : errorCode
+          ? JSON.stringify(errorCode, Object.getOwnPropertyNames(errorCode), 2)
+          : t('error_generic');
   }
 
   document.getElementById('main-app')?.classList.add('page--hidden');

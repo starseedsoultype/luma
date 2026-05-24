@@ -20,7 +20,7 @@ serve(async (_req) => {
       featured_until: null,
     }).in('id', ids);
 
-    const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
+    const token = Deno.env.get('LUMA_BOT_TOKEN');
     if (token) {
       for (const h of expired) {
         const tgId = (h as any).users?.telegram_id;

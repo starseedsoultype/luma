@@ -51,7 +51,7 @@ serve(async (req) => {
 });
 
 async function notifyTelegram(chatId: number, text: string) {
-  const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
+  const token = Deno.env.get('LUMA_BOT_TOKEN');
   if (!token) return;
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',

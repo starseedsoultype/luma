@@ -14,7 +14,7 @@ serve(async (req) => {
     const { initData } = await req.json();
     if (!initData) throw new Error('No initData');
 
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
+    const botToken = Deno.env.get('LUMA_BOT_TOKEN')!;
     const valid = await verifyTelegramInitData(initData, botToken);
     if (!valid) throw new Error('Invalid initData');
 

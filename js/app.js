@@ -73,6 +73,12 @@ async function authUser() {
   return await signInWithTelegram(tg.initData);
 }
 
+// Debug: expose start_param on gate screen so we can see it on device
+function getStartParamDebug() {
+  const sp = tg?.initDataUnsafe?.start_param;
+  return `start_param: "${sp || ''}" (${sp ? 'present' : 'EMPTY'})`;
+}
+
 // ─── Invite activation ────────────────────────────────────────────────────────
 
 async function handleInviteActivation(code) {
@@ -107,9 +113,10 @@ function showGate(type, errorCode) {
 
   if (type === 'invite') {
     title.textContent = t('gate_title');
-    body.textContent = errorCode
+    const baseText = errorCode
       ? t(`error_invite_${errorCode}`) || t('error_invite_invalid')
       : t('gate_text');
+    body.textContent = baseText + '\n\n[debug] ' + getStartParamDebug();
   } else if (type === 'banned') {
     title.textContent = 'Access Restricted';
     body.textContent = 'Your account has been suspended.';

@@ -191,7 +191,10 @@ Deno.serve(async (req: Request) => {
     // 3b. User not found
     if (!isAdmin && !inviteCode) {
       return new Response(
-        JSON.stringify({ error: 'invite_required' }),
+        JSON.stringify({
+          error: 'invite_required',
+          debug: { startParam, inviteCode, telegramId, isAdmin },
+        }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -206,7 +209,11 @@ Deno.serve(async (req: Request) => {
       const invites = await inviteRes.json();
       if (!inviteRes.ok || !invites.length) {
         return new Response(
-          JSON.stringify({ error: 'invite_required', detail: 'invalid_or_used' }),
+          JSON.stringify({
+            error: 'invite_required',
+            detail: 'invalid_or_used',
+            debug: { startParam, inviteCode, found: invites?.length, ok: inviteRes.ok },
+          }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }

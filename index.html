@@ -23,7 +23,10 @@
 
   <!-- Header -->
   <header class="header">
-    <div class="header-title">Luma</div>
+    <div class="header-brand">
+      <div class="header-title">Luma</div>
+      <div class="header-subtitle" data-i18n="header_subtitle">Trusted help nearby</div>
+    </div>
     <div class="header-right">
       <button class="header-city" onclick="openCityPicker()"></button>
       <button class="header-lang" onclick="toggleLang()">EN</button>
@@ -85,16 +88,18 @@
   <!-- Invite -->
   <div id="page-invite" class="page page--hidden">
     <div class="page-content">
-      <div class="section-header">
-        <span class="section-title" data-i18n="invite_title">Invite</span>
+      <div class="invite-hero">
+        <div class="section-header">
+          <span class="section-title" data-i18n="invite_title">Invite</span>
+        </div>
+        <p class="invite-hero__text" data-i18n="invite_subtitle"></p>
+        <button id="generate-invite-btn" class="btn btn-primary" data-i18n="invite_generate">Generate invite link</button>
       </div>
-      <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px" data-i18n="invite_subtitle"></p>
-
-      <button id="generate-invite-btn" class="btn btn-primary" data-i18n="invite_generate">Generate Invite Link</button>
 
       <div id="new-invite-result" class="invite-card page--hidden" style="margin-top:16px">
-        <div class="new-invite-link invite-link" style="word-break:break-all;font-size:13px;margin-bottom:12px"></div>
-        <div style="display:flex;gap:8px">
+        <div class="invite-card__label" data-i18n="invite_link_created">Invite link ready</div>
+        <div class="new-invite-link invite-link"></div>
+        <div class="invite-card__actions">
           <button class="btn btn-secondary btn-sm copy-new-invite" data-i18n="invite_copy">Copy</button>
           <button class="btn btn-primary btn-sm share-new-invite" data-i18n="invite_share">Share</button>
         </div>
@@ -110,8 +115,8 @@
   <!-- Profile -->
   <div id="page-profile" class="page page--hidden">
     <div class="page-content">
-      <div style="text-align:center;padding:20px 0">
-        <div style="width:72px;height:72px;border-radius:50%;background:var(--accent-light);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px">👤</div>
+      <div class="profile-hero">
+        <div class="profile-avatar">👤</div>
         <div class="profile-name" style="font-size:18px;font-weight:700"></div>
         <div class="profile-handle" style="font-size:14px;color:var(--text-secondary);margin-top:4px"></div>
         <div class="profile-role" style="font-size:12px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px"></div>
@@ -126,19 +131,23 @@
         </div>
       </div>
 
-      <div class="profile-row">
-        <span class="profile-row__label" data-i18n="profile_city">City</span>
-        <span class="profile-row__value" id="profile-city-val"></span>
-      </div>
-      <div class="profile-row">
-        <span class="profile-row__label" data-i18n="profile_language">Language</span>
-        <span class="profile-row__value" id="profile-lang-val"></span>
+      <div class="profile-settings-card">
+        <div class="profile-row">
+          <span class="profile-row__label" data-i18n="profile_city">City</span>
+          <span class="profile-row__value" id="profile-city-val"></span>
+        </div>
+        <div class="profile-row">
+          <span class="profile-row__label" data-i18n="profile_language">Language</span>
+          <span class="profile-row__value" id="profile-lang-val"></span>
+        </div>
       </div>
 
-      <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
-        <a href="apply.html" class="btn btn-secondary" data-i18n="apply_title">Become a Helper</a>
-        <a href="legal.html" class="btn btn-ghost" data-i18n="legal_title">Privacy &amp; Terms</a>
+      <div class="profile-cta-card">
+        <div class="profile-cta-card__title" data-i18n="profile_helper_cta_title">Become a trusted helper</div>
+        <div class="profile-cta-card__text" data-i18n="profile_helper_cta_text">Offer your services to people in the Luma circle.</div>
+        <a href="apply.html" class="btn btn-primary" data-i18n="apply_title">Become a Helper</a>
       </div>
+      <a href="legal.html" class="legal-link" data-i18n="legal_title">Privacy &amp; Terms</a>
     </div>
   </div>
 
@@ -169,27 +178,27 @@
   <!-- Bottom nav -->
   <nav class="bottom-nav">
     <button class="nav-item nav-item--active" data-page="home">
-      <span class="nav-icon">🏠</span>
+      <span class="nav-icon">⌂</span>
       <span class="nav-label" data-i18n="nav_home">Home</span>
     </button>
     <button class="nav-item" data-page="favorites">
-      <span class="nav-icon">🔖</span>
+      <span class="nav-icon">◇</span>
       <span class="nav-label" data-i18n="nav_favorites">Saved</span>
     </button>
     <button class="nav-item" data-page="invite">
-      <span class="nav-icon">✉️</span>
+      <span class="nav-icon">↗</span>
       <span class="nav-label" data-i18n="nav_invite">Invite</span>
     </button>
     <button class="nav-item" data-page="profile">
-      <span class="nav-icon">👤</span>
+      <span class="nav-icon">○</span>
       <span class="nav-label" data-i18n="nav_profile">Profile</span>
     </button>
     <button class="nav-item page--hidden" id="nav-circle" data-page="circle">
-      <span class="nav-icon">⭕</span>
+      <span class="nav-icon">◎</span>
       <span class="nav-label">Circle</span>
     </button>
     <button class="nav-item page--hidden" id="nav-admin" data-page="admin">
-      <span class="nav-icon">⚙️</span>
+      <span class="nav-icon">⚙</span>
       <span class="nav-label">Admin</span>
     </button>
   </nav>

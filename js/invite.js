@@ -15,7 +15,7 @@ async function renderInviteHistory() {
     const invites = await getMyInvites(App.user.id);
     if (!invites.length) {
       list.innerHTML = `
-        <div class="empty-state">
+        <div class="empty-state empty-state--card">
           <div class="empty-state__title">${App.lang === 'ru' ? 'Ещё нет приглашений' : 'No invites yet'}</div>
           <div class="empty-state__text">${App.lang === 'ru' ? 'Создайте первое приглашение выше.' : 'Generate your first invite above.'}</div>
         </div>`;
@@ -23,7 +23,7 @@ async function renderInviteHistory() {
     }
     list.innerHTML = invites.map(renderInviteRow).join('');
   } catch (e) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-state__title">${t('error_generic')}</div></div>`;
+      list.innerHTML = `<div class="empty-state empty-state--card"><div class="empty-state__title">${t('error_generic')}</div></div>`;
   }
 }
 
@@ -35,12 +35,17 @@ function renderInviteRow(invite) {
 
   return `
     <div class="invite-card">
-      <div class="invite-card__code">${invite.code}</div>
-      <div class="invite-card__link">${link}</div>
-      <div class="invite-card__status">
+      <div class="invite-card__topline">
+        <div>
+          <div class="invite-card__label">${t('invite_code_label')}</div>
+          <div class="invite-card__code">${invite.code}</div>
+        </div>
         <span class="status-badge status-badge--${used ? 'approved' : 'pending'}">
           ${used ? t('invite_used') : t('invite_pending_invite')}
         </span>
+      </div>
+      <div class="invite-card__link">${link}</div>
+      <div class="invite-card__status">
         ${used && usedBy ? `<span class="invite-card__used-by">${t('invite_used_by')}: ${usedBy}</span>` : ''}
       </div>
       ${!used ? `

@@ -34,9 +34,11 @@ function renderHelpers(helpers) {
 
   if (!helpers.length) {
     list.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state__icon">🔍</div>
+      <div class="empty-state empty-state--card">
+        <div class="empty-state__icon">⌕</div>
         <div class="empty-state__title">${t('search_no_results')}</div>
+        <div class="empty-state__text">${t('search_no_results_text')}</div>
+        <button class="btn btn-secondary btn-sm empty-state__action" onclick="setCategory('all')">${t('search_show_all')}</button>
       </div>`;
     return;
   }
@@ -119,10 +121,10 @@ function showHelperError() {
   const list = document.getElementById('helpers-list');
   if (!list) return;
   list.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-state__icon">⚠️</div>
-      <div class="empty-state__title">${t('error_generic')}</div>
-    </div>`;
+      <div class="empty-state empty-state--card">
+        <div class="empty-state__icon">!</div>
+        <div class="empty-state__title">${t('error_generic')}</div>
+      </div>`;
 }
 
 // ─── Filters ─────────────────────────────────────────────────────────────────
@@ -157,9 +159,10 @@ async function loadFavorites() {
   const ids = getFavorites();
   if (!ids.length) {
     list.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state__icon">🔖</div>
+      <div class="empty-state empty-state--card">
+        <div class="empty-state__icon">◇</div>
         <div class="empty-state__title">${t('favorites_empty')}</div>
+        <div class="empty-state__text">${t('favorites_empty_text')}</div>
       </div>`;
     return;
   }

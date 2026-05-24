@@ -11,7 +11,11 @@ async function signInWithTelegram(initData) {
     `${CONFIG.supabaseUrl}/functions/v1/validate-telegram`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.supabaseAnonKey,
+        'Authorization': `Bearer ${CONFIG.supabaseAnonKey}`,
+      },
       body: JSON.stringify({ initData, inviteCode: pendingInvite }),
     },
   );

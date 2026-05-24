@@ -1,6 +1,6 @@
 const CONFIG = {
-  supabaseUrl: 'YOUR_SUPABASE_URL',
-  supabaseAnonKey: 'YOUR_SUPABASE_ANON_KEY',
+  supabaseUrl: 'https://aoasoksilellqvkfwcal.supabase.co',
+  supabaseAnonKey: 'sb_publishable_7SjaSRrTUgKPw7nsH8E_oA_XNuc1psW',
   botUsername: 'YOUR_BOT_USERNAME',
   appUrl: 'https://starseedsoultype.github.io/luma',
   defaultCity: 'phangan',

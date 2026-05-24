@@ -6,11 +6,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/** Decode JWT payload locally — no network call, no auth.getUser() */
+function getAuthUserId(authHeader: string): string | null {
+  try {
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const payloadPart = token.split('.')[1];
+    if (!payloadPart) return null;
+    const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(
+      normalized.length + (4 - (normalized.length % 4)) % 4,
+      '='
+    );
+    const payload = JSON.parse(atob(padded));
+    return payload?.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  // Accumulate debug state at every step — returned in 400 body so we
-  // can read it directly from network tab even if logs are unavailable.
   const debug: Record<string, unknown> = { step: 'start' };
 
   try {
@@ -27,19 +43,13 @@ serve(async (req) => {
     const authHeader = req.headers.get('authorization');
     debug.hasAuthHeader = !!authHeader;
     debug.step = 'auth_header_checked';
-    if (!authHeader) throw new Error('Unauthorized: no auth header');
+    if (!authHeader) throw new Error('Missing authorization header');
 
-    // ── 3. Verify JWT ────────────────────────────────────────────────────────
-    const anonClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { authorization: authHeader } } }
-    );
-    const { data: { user }, error: authError } = await anonClient.auth.getUser();
-    debug.authUserId = user?.id ?? null;
-    debug.authError = authError?.message ?? null;
-    debug.step = 'jwt_verified';
-    if (!user) throw new Error(`Unauthorized: getUser returned null (${authError?.message})`);
+    // ── 3. Decode JWT locally (no network call, no getUser()) ────────────────
+    const authUserId = getAuthUserId(authHeader);
+    debug.authUserId = authUserId;
+    debug.step = 'jwt_decoded';
+    if (!authUserId) throw new Error('Could not decode auth user id from JWT');
 
     // ── 4. Service-role client ───────────────────────────────────────────────
     const supabase = createClient(
@@ -51,7 +61,7 @@ serve(async (req) => {
     const { data: dbUser1, error: lookup1Error } = await supabase
       .from('luma_users')
       .select('id, status, role')
-      .eq('auth_user_id', user.id)
+      .eq('auth_user_id', authUserId)
       .single();
 
     debug.lookup1Result = dbUser1 ? { id: dbUser1.id, status: dbUser1.status, role: dbUser1.role } : null;
@@ -64,7 +74,7 @@ serve(async (req) => {
       const { data: dbUser2, error: lookup2Error } = await supabase
         .from('luma_users')
         .select('id, status, role')
-        .eq('id', user.id)
+        .eq('id', authUserId)
         .single();
 
       debug.lookup2Result = dbUser2 ? { id: dbUser2.id, status: dbUser2.status, role: dbUser2.role } : null;

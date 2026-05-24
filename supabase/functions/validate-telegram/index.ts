@@ -47,9 +47,8 @@ async function derivePassword(telegramId: number, botToken: string): Promise<str
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Sign in via email/password to get real JWT tokens.
-// Falls back to creating the auth user if it doesn't exist yet
-// (e.g. admin added directly to luma_users without going through invite flow).
+// Sign in via email/password to get real JWT tokens + the actual auth.users.id.
+// Falls back to creating the auth user if it doesn't exist yet.
 async function getAuthTokens(
   telegramId: number,
   botToken: string,
@@ -57,7 +56,7 @@ async function getAuthTokens(
   anonKey: string,
   serviceRoleKey: string,
   existingAuthUserId?: string,
-): Promise<{ access_token: string; refresh_token: string }> {
+): Promise<{ access_token: string; refresh_token: string; auth_user_id: string }> {
   const email = `tg_${telegramId}@luma.app`;
   const password = await derivePassword(telegramId, botToken);
 
@@ -72,7 +71,11 @@ async function getAuthTokens(
 
   let tokenData = await signIn();
   if (tokenData.access_token) {
-    return { access_token: tokenData.access_token, refresh_token: tokenData.refresh_token };
+    return {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      auth_user_id: tokenData.user?.id,
+    };
   }
 
   // Auth user missing — create it, then retry sign-in
@@ -87,7 +90,11 @@ async function getAuthTokens(
   if (!tokenData.access_token) {
     throw new Error('Auth sign-in failed after user creation: ' + JSON.stringify(tokenData));
   }
-  return { access_token: tokenData.access_token, refresh_token: tokenData.refresh_token };
+  return {
+    access_token: tokenData.access_token,
+    refresh_token: tokenData.refresh_token,
+    auth_user_id: tokenData.user?.id,
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -154,18 +161,29 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Update profile fields
-      const updates: Record<string, unknown> = { name, telegram_handle: tgUser.username || null, language };
+      // Get tokens — existingAuthUserId hint is the current auth_user_id if set, else luma_users.id
+      const tokens = await getAuthTokens(
+        telegramId, botToken, SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY,
+        user.auth_user_id || user.id,
+      );
+
+      // Update profile fields + always sync auth_user_id (backfills existing rows)
+      const updates: Record<string, unknown> = {
+        name,
+        telegram_handle: tgUser.username || null,
+        language,
+        auth_user_id: tokens.auth_user_id,
+      };
       if (isAdmin) { updates.role = 'admin'; updates.status = 'active'; }
+
       await fetch(
         `${SUPABASE_URL}/rest/v1/luma_users?telegram_id=eq.${telegramId}`,
         { method: 'PATCH', headers: restHeaders, body: JSON.stringify(updates) },
       );
       user = { ...user, ...updates };
 
-      const tokens = await getAuthTokens(telegramId, botToken, SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, user.id);
       return new Response(
-        JSON.stringify({ ...tokens, user }),
+        JSON.stringify({ access_token: tokens.access_token, refresh_token: tokens.refresh_token, user }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -195,7 +213,7 @@ Deno.serve(async (req: Request) => {
       invite = invites[0];
     }
 
-    // 5. Create Supabase Auth user (uses auth API, not PostgREST — works fine)
+    // 5. Create Supabase Auth user
     const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
@@ -225,12 +243,14 @@ Deno.serve(async (req: Request) => {
       throw new Error('Auth user creation returned no id');
     }
 
-    // 6. Create luma_users row via raw REST
+    // 6. Create luma_users row — id = authUserId so they stay in sync,
+    //    auth_user_id stored explicitly for lookups from Edge Functions
     const createRes = await fetch(`${SUPABASE_URL}/rest/v1/luma_users`, {
       method: 'POST',
       headers: { ...restHeaders, Prefer: 'return=representation' },
       body: JSON.stringify({
         id: authUserId,
+        auth_user_id: authUserId,
         telegram_id: telegramId,
         name,
         telegram_handle: tgUser.username || null,
@@ -258,7 +278,7 @@ Deno.serve(async (req: Request) => {
 
     const tokens = await getAuthTokens(telegramId, botToken, SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, authUserId);
     return new Response(
-      JSON.stringify({ ...tokens, user }),
+      JSON.stringify({ access_token: tokens.access_token, refresh_token: tokens.refresh_token, user }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
 

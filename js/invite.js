@@ -111,13 +111,14 @@ async function copyInviteLink(link, btn) {
 }
 
 function shareInviteLink(link) {
-  if (tg?.shareUrl) {
-    const text = App.lang === 'ru'
-      ? `Я приглашаю тебя в Luma — закрытую сеть проверенных помощников на Ко Пхангане.`
-      : `Join Luma — a private trusted helper network on Koh Phangan.`;
-    tg.shareUrl(link, text);
+  const text = App.lang === 'ru'
+    ? 'Я приглашаю тебя в Luma — закрытую сеть проверенных помощников на Ко Пхангане.'
+    : 'Join Luma — a private trusted helper network on Koh Phangan.';
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(shareUrl);
   } else {
-    copyInviteLink(link, { textContent: '' });
+    window.open(shareUrl, '_blank');
   }
 }
 

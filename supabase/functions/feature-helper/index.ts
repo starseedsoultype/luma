@@ -36,7 +36,7 @@ serve(async (req) => {
     );
 
     const { data: caller } = await supabase
-      .from('luma_users').select('role').eq('id', user.id).single();
+      .from('luma_users').select('role').eq('auth_user_id', user.id).single();
     if (caller?.role !== 'admin') {
       return new Response(JSON.stringify({ error: 'Forbidden' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

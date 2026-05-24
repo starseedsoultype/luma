@@ -4,13 +4,23 @@ const db = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 async function signInWithTelegram(initData) {
-  const { data, error } = await db.functions.invoke('validate-telegram', {
-    body: { initData },
+  const res = await fetch(
+    `${CONFIG.supabaseUrl}/functions/v1/validate-telegram`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Telegram auth failed');
+
+  // Establish authenticated Supabase session so auth.uid() works in RLS
+  await db.auth.setSession({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
   });
-  if (error) throw error;
-  if (data.token) {
-    await db.auth.setSession({ access_token: data.token, refresh_token: data.token });
-  }
+
   return data.user;
 }
 
@@ -28,7 +38,7 @@ async function getHelpers({ city, category, search, language, area } = {}) {
     .from('luma_helper_profiles')
     .select(`
       *,
-      luma_luma_helper_badges ( badge_key )
+      luma_helper_badges ( badge_key )
     `)
     .eq('trust_status', 'approved')
     .eq('is_active', true);
@@ -51,7 +61,7 @@ async function getHelpers({ city, category, search, language, area } = {}) {
 async function getHelperById(id) {
   const { data, error } = await db
     .from('luma_helper_profiles')
-    .select(`*, luma_luma_helper_badges ( badge_key )`)
+    .select(`*, luma_helper_badges ( badge_key )`)
     .eq('id', id)
     .single();
   if (error) throw error;
@@ -179,7 +189,7 @@ async function getFavoriteHelpers() {
   if (!ids.length) return [];
   const { data, error } = await db
     .from('luma_helper_profiles')
-    .select(`*, luma_luma_helper_badges ( badge_key )`)
+    .select(`*, luma_helper_badges ( badge_key )`)
     .in('id', ids)
     .eq('trust_status', 'approved')
     .eq('is_active', true);

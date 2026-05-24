@@ -31,6 +31,11 @@ async function initApp() {
   App.city = cityParam || localStorage.getItem('luma_city') || CONFIG.defaultCity;
   if (!CITIES[App.city]) App.city = CONFIG.defaultCity;
 
+  // Persist invite code so it survives menu-button re-opens and refreshes
+  if (startParam.startsWith('invite_')) {
+    localStorage.setItem('luma_pending_invite', startParam.slice(7));
+  }
+
   // Auth
   try {
     App.user = await authUser();

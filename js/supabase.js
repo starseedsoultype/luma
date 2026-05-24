@@ -4,12 +4,15 @@ const db = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 async function signInWithTelegram(initData) {
+  // Pass any stored invite code so it survives menu-button re-opens
+  const pendingInvite = localStorage.getItem('luma_pending_invite') || null;
+
   const res = await fetch(
     `${CONFIG.supabaseUrl}/functions/v1/validate-telegram`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData }),
+      body: JSON.stringify({ initData, inviteCode: pendingInvite }),
     },
   );
   const data = await res.json();
@@ -21,6 +24,9 @@ async function signInWithTelegram(initData) {
     err.code = code;
     throw err;
   }
+
+  // Clear pending invite after successful auth
+  localStorage.removeItem('luma_pending_invite');
 
   console.log('validate-telegram ok', {
     hasAccessToken: !!data.access_token,

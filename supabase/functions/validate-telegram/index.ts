@@ -101,7 +101,8 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { initData } = await req.json();
+    const body = await req.json();
+    const { initData, inviteCode: bodyInviteCode } = body;
     if (!initData) throw new Error('no initData');
 
     const botToken = Deno.env.get('LUMA_BOT_TOKEN')!;
@@ -123,7 +124,10 @@ Deno.serve(async (req: Request) => {
     const tgUser = JSON.parse(validated['user']);
     const telegramId: number = tgUser.id;
     const startParam: string = validated['start_param'] || '';
-    const inviteCode = startParam.startsWith('invite_') ? startParam.slice(7) : null;
+    // inviteCode from initData start_param takes priority; fall back to body param
+    // (body param handles the case where user opens bot via ?start= then uses menu button)
+    const inviteCode = (startParam.startsWith('invite_') ? startParam.slice(7) : null)
+      || (typeof bodyInviteCode === 'string' && bodyInviteCode ? bodyInviteCode : null);
     const isAdmin = ADMIN_TELEGRAM_IDS.includes(telegramId);
     const name = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ')
       || tgUser.username || String(telegramId);

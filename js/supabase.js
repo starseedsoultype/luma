@@ -496,6 +496,22 @@ function getRequiredVotes(tcCount) {
   return 3;
 }
 
+// ─── Account deletion ─────────────────────────────────────────────────────────
+
+async function deleteMyAccount() {
+  const { data, error } = await db.functions.invoke('delete-account', {
+    body: {},
+  });
+  if (error) {
+    let body = null;
+    try { body = await error.context?.json?.(); } catch (_) {}
+    const msg = body?.error || body?.message || error.message;
+    const steps = body?.steps ? ` [steps: ${body.steps.join('→')}]` : '';
+    throw new Error(msg + steps);
+  }
+  return data;
+}
+
 // ─── Storage ─────────────────────────────────────────────────────────────────
 
 async function uploadAvatar(file, userId) {

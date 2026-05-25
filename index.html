@@ -26,7 +26,7 @@
     <div class="header-brand">
       <div class="header-title">Luma</div>
       <div class="header-subtitle" data-i18n="header_subtitle">Trusted help nearby</div>
-      <div style="font-size:9px;color:var(--text-muted);line-height:1">v22</div>
+      <div style="font-size:9px;color:var(--text-muted);line-height:1">v23</div>
     </div>
     <div class="header-right">
       <button class="header-city" onclick="openCityPicker()"></button>
@@ -149,6 +149,29 @@
         <a href="apply.html" class="btn btn-primary" data-i18n="apply_title">Become a Helper</a>
       </div>
       <a href="legal.html" class="legal-link" data-i18n="legal_title">Privacy &amp; Terms</a>
+
+      <!-- Delete account -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);text-align:center">
+        <div id="delete-account-panel" class="page--hidden"
+             style="margin-bottom:12px;padding:16px;background:#fff1f0;border-radius:var(--radius-lg);border:1px solid #ffccc7;text-align:left">
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:14px"
+               data-i18n="profile_delete_text"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary"
+                    style="background:#e53e3e;border-color:#e53e3e;flex:1"
+                    id="delete-account-confirm-btn"
+                    onclick="executeDeleteAccount()"
+                    data-i18n="profile_delete_confirm">Yes, delete permanently</button>
+            <button class="btn btn-secondary"
+                    onclick="cancelDeleteAccount()"
+                    data-i18n="profile_delete_cancel">Cancel</button>
+          </div>
+        </div>
+        <button id="delete-account-trigger"
+                style="background:none;border:none;color:#e53e3e;font-size:13px;cursor:pointer;padding:4px 0;opacity:0.7"
+                onclick="confirmDeleteAccount()"
+                data-i18n="profile_delete_title">Delete my account</button>
+      </div>
     </div>
   </div>
 
@@ -210,12 +233,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js?v=8"></script>
 <script src="js/cities.js?v=8"></script>
-<script src="js/i18n.js?v=8"></script>
-<script src="js/supabase.js?v=22"></script>
+<script src="js/i18n.js?v=9"></script>
+<script src="js/supabase.js?v=23"></script>
 <script src="js/helpers.js?v=8"></script>
 <script src="js/invite.js?v=13"></script>
 <script src="js/circle.js?v=8"></script>
 <script src="js/admin.js?v=2"></script>
-<script src="js/app.js?v=14"></script>
+<script src="js/app.js?v=15"></script>
 </body>
 </html>

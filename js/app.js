@@ -373,6 +373,49 @@ function contactHelper(helper, user) {
     : window.open(`https://t.me/${handle}`, '_blank');
 }
 
+// ─── Delete account ───────────────────────────────────────────────────────────
+
+function confirmDeleteAccount() {
+  document.getElementById('delete-account-panel')?.classList.remove('page--hidden');
+  document.getElementById('delete-account-trigger')?.classList.add('page--hidden');
+}
+
+function cancelDeleteAccount() {
+  document.getElementById('delete-account-panel')?.classList.add('page--hidden');
+  document.getElementById('delete-account-trigger')?.classList.remove('page--hidden');
+}
+
+async function executeDeleteAccount() {
+  const confirmBtn = document.getElementById('delete-account-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.textContent = t('profile_delete_loading');
+    confirmBtn.disabled = true;
+  }
+  try {
+    await deleteMyAccount();
+    // Clear all local state
+    localStorage.removeItem('luma_favorites');
+    localStorage.removeItem('luma_pending_invite');
+    localStorage.removeItem('luma_city');
+    localStorage.removeItem('luma_lang');
+    // Sign out of Supabase session
+    await db.auth.signOut().catch(() => {});
+    // Close Mini App or reload
+    if (tg?.close) {
+      tg.close();
+    } else {
+      location.reload();
+    }
+  } catch (e) {
+    console.error('Delete account failed:', e);
+    alert('Failed to delete: ' + (e?.message || 'Unknown error'));
+    if (confirmBtn) {
+      confirmBtn.textContent = t('profile_delete_confirm');
+      confirmBtn.disabled = false;
+    }
+  }
+}
+
 // ─── Back navigation ──────────────────────────────────────────────────────────
 
 function goBack() {

@@ -148,6 +148,14 @@ const TRANSLATIONS = {
     legal_terms_text: 'Luma is a private curated directory — not a marketplace, not an employment platform. The platform does not verify legal employment status, does not process payments, and does not guarantee the quality of services. All arrangements between clients and helpers are made independently via Telegram. By using Luma, you agree to take personal responsibility for any agreements you make. Helpers confirm their personal legal responsibility when submitting their application. Luma reserves the right to remove any profile or user at any time.',
     legal_contact: 'Questions? Contact the administrator via Telegram.',
 
+    // Delete account
+    profile_delete_title: 'Delete my account',
+    profile_delete_text: 'This will permanently delete your account and all data — profile, applications, invite history. This cannot be undone.',
+    profile_delete_confirm: 'Yes, delete permanently',
+    profile_delete_cancel: 'Cancel',
+    profile_delete_loading: 'Deleting...',
+    profile_delete_done: 'Account deleted.',
+
     // Search
     search_placeholder: 'Search by name, area...',
     search_no_results: 'No helpers in this category yet',
@@ -310,6 +318,14 @@ const TRANSLATIONS = {
     legal_terms_title: 'Условия использования',
     legal_terms_text: 'Luma — это частный кураторский каталог, а не маркетплейс и не платформа трудоустройства. Платформа не проверяет юридический статус, не принимает платежи и не гарантирует качество услуг. Все договорённости между клиентами и помощниками заключаются самостоятельно через Telegram. Используя Luma, вы соглашаетесь нести личную ответственность за любые договорённости. Помощники подтверждают личную юридическую ответственность при подаче заявки. Luma оставляет за собой право удалить любой профиль или пользователя в любое время.',
     legal_contact: 'Вопросы? Напишите администратору в Telegram.',
+
+    // Delete account
+    profile_delete_title: 'Удалить аккаунт',
+    profile_delete_text: 'Аккаунт и все данные — профиль, заявки, история приглашений — будут удалены безвозвратно.',
+    profile_delete_confirm: 'Да, удалить навсегда',
+    profile_delete_cancel: 'Отмена',
+    profile_delete_loading: 'Удаление...',
+    profile_delete_done: 'Аккаунт удалён.',
 
     // Search
     search_placeholder: 'Поиск по имени, району...',

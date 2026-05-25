@@ -144,6 +144,7 @@ function renderPage() {
   const page = getCurrentPage();
   document.getElementById('gate-screen')?.classList.add('page--hidden');
   document.getElementById('main-app')?.classList.remove('page--hidden');
+  updateNavVisibility(); // show ⚙ Admin / ◎ Circle based on role
   activateNavItem(page);
   loadPage(page);
   updateCityDisplay();
@@ -204,8 +205,10 @@ function setupNav() {
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => navigateTo(item.dataset.page));
   });
+}
 
-  // Show admin/circle nav items based on role
+// Called after App.user is set — shows role-gated nav items
+function updateNavVisibility() {
   const role = App.user?.role;
   if (role === 'admin') {
     document.getElementById('nav-admin')?.classList.remove('page--hidden');

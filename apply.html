@@ -21,16 +21,18 @@
     <div id="apply-form-wrapper">
       <form id="apply-form" novalidate>
 
-        <!-- Photo -->
+        <!-- Telegram photo (auto-filled by JS from initDataUnsafe) -->
         <div class="form-group" style="text-align:center">
-          <div class="avatar-upload" id="avatar-preview" onclick="document.getElementById('avatar-input').click()">
-            <span style="font-size:32px">📷</span>
-          </div>
-          <input type="file" id="avatar-input" accept="image/*" style="display:none">
-          <div id="avatar-error" class="form-error page--hidden"></div>
+          <div id="tg-avatar" style="
+            width:80px;height:80px;border-radius:50%;margin:0 auto 8px;
+            background:var(--accent-light);display:flex;align-items:center;
+            justify-content:center;font-size:32px;font-weight:700;
+            color:var(--accent);overflow:hidden;
+          "></div>
+          <div style="font-size:12px;color:var(--text-muted)" data-i18n="apply_photo_note">Photo from your Telegram profile</div>
         </div>
 
-        <!-- Name -->
+        <!-- Name (pre-filled from Telegram) -->
         <div class="form-group">
           <label class="form-label" data-i18n="apply_name">Display Name</label>
           <input id="apply-name" class="form-input" type="text" maxlength="60">
@@ -98,18 +100,14 @@
           </div>
         </div>
 
-        <!-- Telegram -->
-        <div class="form-group">
-          <label class="form-label" data-i18n="apply_telegram">Telegram Username</label>
-          <input id="apply-telegram" class="form-input" type="text"
-            data-i18n-placeholder="apply_telegram_placeholder">
-          <div id="telegram-error" class="form-error page--hidden"></div>
-        </div>
-
-        <!-- Legal -->
+        <!-- Legal confirmation — explicit checkbox, always visible -->
         <div class="form-group" style="background:var(--accent-light);border-radius:var(--radius-md);padding:14px">
-          <label class="form-checkbox-wrapper" style="align-items:flex-start;gap:10px">
-            <input type="checkbox" id="apply-legal-checkbox" style="margin-top:3px;flex-shrink:0">
+          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer">
+            <input
+              type="checkbox"
+              id="apply-legal-checkbox"
+              style="width:20px;height:20px;min-width:20px;margin-top:2px;cursor:pointer;accent-color:var(--accent)"
+            >
             <span style="font-size:13px;color:var(--text-secondary);line-height:1.5" data-i18n="apply_legal"></span>
           </label>
           <div id="legal-error" class="form-error page--hidden"></div>
@@ -117,7 +115,9 @@
 
         <div id="submit-error" class="form-error page--hidden" style="margin-bottom:12px"></div>
 
-        <button type="submit" id="apply-submit-btn" class="btn btn-primary" data-i18n="apply_submit">
+        <!-- Disabled until checkbox is checked -->
+        <button type="submit" id="apply-submit-btn" class="btn btn-primary"
+          disabled style="opacity:0.5" data-i18n="apply_submit">
           Submit Application
         </button>
 
@@ -139,8 +139,8 @@
 <script src="js/config.js"></script>
 <script src="js/cities.js"></script>
 <script src="js/i18n.js"></script>
-<script src="js/supabase.js"></script>
-<script src="js/apply.js"></script>
+<script src="js/supabase.js?v=21"></script>
+<script src="js/apply.js?v=2"></script>
 <script>
   const tg = window.Telegram?.WebApp;
   if (tg) { tg.ready(); tg.expand(); }

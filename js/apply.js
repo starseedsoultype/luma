@@ -1,8 +1,8 @@
 // ─── State ────────────────────────────────────────────────────────────────────
 
 const ApplyState = {
-  avatarFile: null,
   submitting: false,
+  telegramUser: null,
 };
 
 // ─── Form setup ───────────────────────────────────────────────────────────────
@@ -11,81 +11,99 @@ function setupApplyForm() {
   const form = document.getElementById('apply-form');
   if (!form) return;
 
-  // Avatar upload
-  const avatarInput = document.getElementById('avatar-input');
-  const avatarPreview = document.getElementById('avatar-preview');
-  avatarInput?.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      showFieldError('avatar-error', 'Max file size is 5MB.');
-      return;
-    }
-    ApplyState.avatarFile = file;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      if (avatarPreview) {
-        avatarPreview.style.backgroundImage = `url(${ev.target.result})`;
-        avatarPreview.innerHTML = '';
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+  // Grab Telegram user from initDataUnsafe (available in Mini App context)
+  ApplyState.telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user || null;
 
-  // Telegram handle format
-  const tgInput = document.getElementById('apply-telegram');
-  tgInput?.addEventListener('input', e => {
-    let v = e.target.value.trim();
-    if (v && !v.startsWith('@')) v = '@' + v;
-    e.target.value = v;
-  });
+  // Pre-fill name from Telegram profile
+  const nameInput = document.getElementById('apply-name');
+  if (nameInput && ApplyState.telegramUser) {
+    const { first_name, last_name } = ApplyState.telegramUser;
+    const fullName = [first_name, last_name].filter(Boolean).join(' ');
+    if (fullName) nameInput.value = fullName;
+  }
 
-  // Submit
+  // Display Telegram photo or initials
+  renderTelegramAvatar();
+
+  // Legal checkbox gates the submit button
+  const checkbox = document.getElementById('apply-legal-checkbox');
+  const submitBtn = document.getElementById('apply-submit-btn');
+  if (checkbox && submitBtn) {
+    checkbox.addEventListener('change', () => {
+      submitBtn.disabled = !checkbox.checked;
+      submitBtn.style.opacity = checkbox.checked ? '1' : '0.5';
+    });
+  }
+
   form.addEventListener('submit', handleApplySubmit);
 }
+
+function renderTelegramAvatar() {
+  const container = document.getElementById('tg-avatar');
+  if (!container) return;
+
+  const photoUrl = ApplyState.telegramUser?.photo_url;
+  const firstName = ApplyState.telegramUser?.first_name || '?';
+  const initial = firstName.charAt(0).toUpperCase();
+
+  if (photoUrl) {
+    container.innerHTML = `<img src="${photoUrl}"
+      style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">`;
+  } else {
+    container.textContent = initial;
+  }
+}
+
+// ─── Submit ───────────────────────────────────────────────────────────────────
 
 async function handleApplySubmit(e) {
   e.preventDefault();
   if (ApplyState.submitting) return;
 
   clearFormErrors();
-  const valid = validateApplyForm();
-  if (!valid) return;
+  if (!validateApplyForm()) return;
 
-  const legalCheckbox = document.getElementById('apply-legal-checkbox');
-  if (!legalCheckbox?.checked) {
-    showFieldError('legal-error', App.lang === 'ru'
-      ? 'Необходимо подтвердить.'
-      : 'Confirmation required.');
+  // Checkbox guard (redundant but explicit)
+  const checkbox = document.getElementById('apply-legal-checkbox');
+  if (!checkbox?.checked) {
+    showFieldError('legal-error', App.lang === 'ru' ? 'Необходимо подтвердить.' : 'Confirmation required.');
     return;
   }
 
   ApplyState.submitting = true;
   const btn = document.getElementById('apply-submit-btn');
-  if (btn) { btn.disabled = true; btn.textContent = t('loading'); }
+  if (btn) { btn.disabled = true; btn.textContent = t('loading'); btn.style.opacity = '1'; }
 
   try {
+    const tgUser = ApplyState.telegramUser;
+    // telegram_handle comes from Telegram — no manual input needed
+    const telegramHandle = tgUser?.username ? '@' + tgUser.username : '';
+    // avatar comes from Telegram — no upload needed
+    const avatarUrl = tgUser?.photo_url || null;
     const city = document.getElementById('apply-city')?.value || App.city;
+
     await submitHelperApplication({
       profile: {
         displayName: document.getElementById('apply-name')?.value.trim(),
-        category: document.getElementById('apply-category')?.value,
-        bio: document.getElementById('apply-bio')?.value.trim(),
-        languages: getSelectedLanguages(),
+        category:    document.getElementById('apply-category')?.value,
+        bio:         document.getElementById('apply-bio')?.value.trim(),
+        languages:   getSelectedLanguages(),
         locationArea: document.getElementById('apply-area')?.value.trim(),
         city,
-        priceFrom: parseFloat(document.getElementById('apply-price')?.value) || null,
-        priceUnit: document.getElementById('apply-price-unit')?.value || null,
-        telegramHandle: document.getElementById('apply-telegram')?.value.trim(),
-        avatarFile: ApplyState.avatarFile,
+        priceFrom:   parseFloat(document.getElementById('apply-price')?.value) || null,
+        priceUnit:   document.getElementById('apply-price-unit')?.value || null,
+        telegramHandle,
+        avatarUrl,    // direct URL from Telegram, no storage upload
+        avatarFile: null,
       },
       legalConfirmation: true,
     });
+
     showApplySuccess();
   } catch (err) {
     console.error('Apply error', err);
-    showFieldError('submit-error', t('apply_error'));
-    if (btn) { btn.disabled = false; btn.textContent = t('apply_submit'); }
+    showFieldError('submit-error', err.message || t('apply_error'));
+    if (btn) { btn.disabled = false; btn.textContent = t('apply_submit'); btn.style.opacity = '1'; }
   } finally {
     ApplyState.submitting = false;
   }
@@ -101,9 +119,6 @@ function validateApplyForm() {
 
   const category = document.getElementById('apply-category')?.value;
   if (!category) { showFieldError('category-error', 'Required'); valid = false; }
-
-  const tg = document.getElementById('apply-telegram')?.value.trim();
-  if (!tg || !tg.startsWith('@')) { showFieldError('telegram-error', 'Enter your @username'); valid = false; }
 
   return valid;
 }
@@ -121,19 +136,17 @@ function clearFormErrors() {
 }
 
 function getSelectedLanguages() {
-  const checkboxes = document.querySelectorAll('input[name="language"]:checked');
-  return Array.from(checkboxes).map(c => c.value);
+  return Array.from(document.querySelectorAll('input[name="language"]:checked')).map(c => c.value);
 }
 
-// ─── Success screen ───────────────────────────────────────────────────────────
+// ─── Success ──────────────────────────────────────────────────────────────────
 
 function showApplySuccess() {
   document.getElementById('apply-form-wrapper')?.classList.add('page--hidden');
-  const success = document.getElementById('apply-success');
-  if (success) success.classList.remove('page--hidden');
+  document.getElementById('apply-success')?.classList.remove('page--hidden');
 }
 
-// ─── City selector populate ───────────────────────────────────────────────────
+// ─── City selector ────────────────────────────────────────────────────────────
 
 function populateCitySelect() {
   const sel = document.getElementById('apply-city');

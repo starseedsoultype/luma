@@ -113,9 +113,9 @@ async function submitHelperApplication({ profile, legalConfirmation }) {
   const user = await getCurrentUser();
   if (!user) throw new Error('Not authenticated');
 
-  const avatarUrl = profile.avatarFile
-    ? await uploadAvatar(profile.avatarFile, user.id)
-    : null;
+  // avatarUrl: direct URL (from Telegram photo_url) takes priority over file upload
+  const avatarUrl = profile.avatarUrl ||
+    (profile.avatarFile ? await uploadAvatar(profile.avatarFile, user.id) : null);
 
   const { data: helperProfile, error: profileError } = await db
     .from('luma_helper_profiles')

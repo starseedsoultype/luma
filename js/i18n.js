@@ -148,6 +148,14 @@ const TRANSLATIONS = {
     legal_terms_text: 'Luma is a private curated directory — not a marketplace, not an employment platform. The platform does not verify legal employment status, does not process payments, and does not guarantee the quality of services. All arrangements between clients and helpers are made independently via Telegram. By using Luma, you agree to take personal responsibility for any agreements you make. Helpers confirm their personal legal responsibility when submitting their application. Luma reserves the right to remove any profile or user at any time.',
     legal_contact: 'Questions? Contact the administrator via Telegram.',
 
+    // Edit profile
+    edit_profile_title: 'Edit Profile',
+    edit_profile_save: 'Save Changes',
+    edit_profile_saving: 'Saving...',
+    edit_profile_saved: 'Profile updated',
+    edit_profile_error: 'Could not save. Try again.',
+    edit_profile_no_profile: 'No helper profile found.',
+
     // Delete account
     profile_delete_title: 'Delete my account',
     profile_delete_text: 'This will permanently delete your account and all data — profile, applications, invite history. This cannot be undone.',
@@ -318,6 +326,14 @@ const TRANSLATIONS = {
     legal_terms_title: 'Условия использования',
     legal_terms_text: 'Luma — это частный кураторский каталог, а не маркетплейс и не платформа трудоустройства. Платформа не проверяет юридический статус, не принимает платежи и не гарантирует качество услуг. Все договорённости между клиентами и помощниками заключаются самостоятельно через Telegram. Используя Luma, вы соглашаетесь нести личную ответственность за любые договорённости. Помощники подтверждают личную юридическую ответственность при подаче заявки. Luma оставляет за собой право удалить любой профиль или пользователя в любое время.',
     legal_contact: 'Вопросы? Напишите администратору в Telegram.',
+
+    // Edit profile
+    edit_profile_title: 'Редактировать профиль',
+    edit_profile_save: 'Сохранить',
+    edit_profile_saving: 'Сохранение...',
+    edit_profile_saved: 'Профиль обновлён',
+    edit_profile_error: 'Не удалось сохранить. Попробуйте снова.',
+    edit_profile_no_profile: 'Профиль помощника не найден.',
 
     // Delete account
     profile_delete_title: 'Удалить аккаунт',

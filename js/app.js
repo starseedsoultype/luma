@@ -310,13 +310,15 @@ async function loadMyApplication() {
     if (!el) return;
     if (app) {
       el.classList.remove('page--hidden');
-      el.querySelector('.my-app-status')?.classList.forEach(c => {
-        if (c.startsWith('status-badge--')) el.querySelector('.my-app-status').classList.remove(c);
-      });
       const statusEl = el.querySelector('.my-app-status');
       if (statusEl) {
         statusEl.textContent = t(`status_${app.status}`);
         statusEl.className = `status-badge status-badge--${app.status}`;
+      }
+      // Show Edit Profile button for approved and pending profiles
+      const editBtn = document.getElementById('edit-profile-btn');
+      if (editBtn && (app.status === 'approved' || app.status === 'pending')) {
+        editBtn.classList.remove('page--hidden');
       }
     }
   } catch (e) {

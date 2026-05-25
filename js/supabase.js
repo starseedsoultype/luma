@@ -163,6 +163,39 @@ async function submitHelperApplication({ profile, legalConfirmation }) {
   return helperProfile;
 }
 
+async function updateHelperProfile(profileId, updates) {
+  const { data, error } = await db
+    .from('luma_helper_profiles')
+    .update({
+      display_name:  updates.displayName,
+      category:      updates.category,
+      bio:           updates.bio,
+      languages:     updates.languages,
+      location_area: updates.locationArea,
+      city:          updates.city,
+      price_from:    updates.priceFrom || null,
+      price_unit:    updates.priceUnit || null,
+      updated_at:    new Date().toISOString(),
+    })
+    .eq('id', profileId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function getMyHelperProfile(userId) {
+  const { data, error } = await db
+    .from('luma_helper_profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
 async function getMyApplication(userId) {
   const { data, error } = await db
     .from('luma_helper_applications')

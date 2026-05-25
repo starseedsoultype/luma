@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Luma — Edit Profile</title>
+  <link rel="stylesheet" href="css/theme.css?v=4">
+  <link rel="stylesheet" href="css/components.css?v=4">
+  <link rel="stylesheet" href="css/animations.css?v=4">
+</head>
+<body>
+<div class="app-container">
+  <header class="header">
+    <button class="btn-ghost" onclick="history.back()">←</button>
+    <div class="header-title" data-i18n="edit_profile_title">Edit Profile</div>
+    <div></div>
+  </header>
+
+  <div class="page-content" style="padding-top:64px">
+
+    <!-- Loading state -->
+    <div id="edit-loading">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+
+    <!-- Error state -->
+    <div id="edit-error" class="page--hidden" style="text-align:center;padding:48px 0">
+      <div style="font-size:15px;color:var(--text-secondary)" data-i18n="edit_profile_no_profile"></div>
+    </div>
+
+    <!-- Form -->
+    <div id="edit-form-wrapper" class="page--hidden">
+      <form id="edit-form" novalidate>
+
+        <!-- Display Name -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_name">Display Name</label>
+          <input id="edit-name" class="form-input" type="text" maxlength="60">
+          <div id="edit-name-error" class="form-error page--hidden"></div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_category">Category</label>
+          <select id="edit-category" class="form-select">
+            <option value="">—</option>
+            <option value="cleaner">Cleaner</option>
+            <option value="nanny">Nanny</option>
+            <option value="assistant">Assistant</option>
+            <option value="handyman">Handyman</option>
+            <option value="chef">Chef</option>
+            <option value="driver">Driver</option>
+          </select>
+          <div id="edit-category-error" class="form-error page--hidden"></div>
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_bio">About You</label>
+          <textarea id="edit-bio" class="form-input" rows="4" maxlength="500"
+            data-i18n-placeholder="apply_bio_placeholder"></textarea>
+        </div>
+
+        <!-- Languages -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_languages">Languages</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <label class="language-pill"><input type="checkbox" name="language" value="English"><span>English</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="Russian"><span>Русский</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="Thai"><span>Thai</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="French"><span>French</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="German"><span>German</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="Chinese"><span>Chinese</span></label>
+          </div>
+        </div>
+
+        <!-- Area -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_area">Area / Neighborhood</label>
+          <input id="edit-area" class="form-input" type="text" maxlength="80" placeholder="e.g. Srithanu, Haad Rin...">
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_city">City</label>
+          <select id="edit-city" class="form-select"></select>
+        </div>
+
+        <!-- Price -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="apply_price_from">Starting Price</label>
+          <div style="display:flex;gap:10px">
+            <input id="edit-price" class="form-input" type="number" min="0" placeholder="500" style="flex:1">
+            <select id="edit-price-unit" class="form-select" style="flex:1">
+              <option value="hour">/ hour</option>
+              <option value="visit">/ visit</option>
+              <option value="day">/ day</option>
+              <option value="project">/ project</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="edit-submit-error" class="form-error page--hidden" style="margin-bottom:12px"></div>
+
+        <button type="submit" id="edit-submit-btn" class="btn btn-primary" data-i18n="edit_profile_save">
+          Save Changes
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Success toast -->
+    <div id="edit-success-toast"
+         class="page--hidden"
+         style="position:fixed;bottom:calc(var(--nav-height) + 16px);left:50%;transform:translateX(-50%);
+                background:var(--accent);color:#fff;padding:12px 24px;border-radius:var(--radius-xl);
+                font-size:14px;font-weight:600;z-index:999;white-space:nowrap"
+         data-i18n="edit_profile_saved">Profile updated</div>
+
+  </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/i18n.js?v=10"></script>
+<script src="js/supabase.js?v=25"></script>
+<script src="js/edit-profile.js?v=1"></script>
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+  const App = {
+    lang: localStorage.getItem('luma_lang') || 'en',
+    city: localStorage.getItem('luma_city') || 'phangan',
+  };
+  setLang(App.lang);
+</script>
+</body>
+</html>

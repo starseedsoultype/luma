@@ -273,6 +273,17 @@ function loadProfilePage() {
   const el = document.getElementById('page-profile');
   if (!el) return;
 
+  // Avatar: show photo if available, fallback to emoji
+  const avatarEl = el.querySelector('.profile-avatar');
+  if (avatarEl) {
+    if (u.avatar_url) {
+      avatarEl.innerHTML = `<img src="${u.avatar_url}" alt=""
+        style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:block">`;
+    } else {
+      avatarEl.textContent = '👤';
+    }
+  }
+
   const nameEl = el.querySelector('.profile-name');
   if (nameEl) nameEl.textContent = u.name || '';
 

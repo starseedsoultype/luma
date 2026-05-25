@@ -498,6 +498,20 @@ function getRequiredVotes(tcCount) {
 
 // ─── Account deletion ─────────────────────────────────────────────────────────
 
+async function adminDeleteUser(userId) {
+  const { data, error } = await db.functions.invoke('admin-delete-user', {
+    body: { userId },
+  });
+  if (error) {
+    let body = null;
+    try { body = await error.context?.json?.(); } catch (_) {}
+    const msg = body?.error || body?.message || error.message;
+    const steps = body?.steps ? ` [steps: ${body.steps.join('→')}]` : '';
+    throw new Error(msg + steps);
+  }
+  return data;
+}
+
 async function deleteMyAccount() {
   const { data, error } = await db.functions.invoke('delete-account', {
     body: {},

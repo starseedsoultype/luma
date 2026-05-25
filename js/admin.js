@@ -246,6 +246,11 @@ async function loadAdminUsers() {
             <button class="btn btn-sm btn-approve" onclick="handleBan('${u.id}','unban')">
               ${t('admin_unban')}
             </button>`}
+          <button class="btn btn-sm"
+            style="background:#fff1f0;color:#e53e3e;border:1px solid #ffccc7"
+            onclick="handleAdminDeleteUser('${u.id}', '${escHtml(u.name)}')">
+            Delete
+          </button>
         </div>
       </div>`).join('');
   } catch (e) {
@@ -267,6 +272,19 @@ async function handleBan(userId, action) {
     else await adminUnbanUser(userId);
     loadAdminUsers();
   } catch (e) { alert(t('error_generic')); }
+}
+
+async function handleAdminDeleteUser(userId, userName) {
+  const confirmed = confirm(`Delete ${userName}?\n\nThis will permanently remove their account, profile, applications, and all data. Cannot be undone.`);
+  if (!confirmed) return;
+  try {
+    await adminDeleteUser(userId);
+    tg?.HapticFeedback?.notificationOccurred('success');
+    loadAdminUsers();
+  } catch (e) {
+    console.error('admin delete user error:', e);
+    alert('Delete failed: ' + (e?.message || 'Unknown error'));
+  }
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────

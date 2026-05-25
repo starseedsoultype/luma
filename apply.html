@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Luma — Become a Helper</title>
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/theme.css?v=4">
+  <link rel="stylesheet" href="css/components.css?v=4">
+  <link rel="stylesheet" href="css/animations.css?v=4">
 </head>
 <body>
 <div class="app-container">
@@ -64,13 +64,13 @@
         <!-- Languages -->
         <div class="form-group">
           <label class="form-label" data-i18n="apply_languages">Languages</label>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">
-            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="English"> English</label>
-            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="Russian"> Русский</label>
-            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="Thai"> Thai</label>
-            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="French"> French</label>
-            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="German"> German</label>
-            <label class="form-checkbox-wrapper"><input type="checkbox" name="language" value="Chinese"> Chinese</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <label class="language-pill"><input type="checkbox" name="language" value="English"><span>English</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="Russian"><span>Русский</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="Thai"><span>Thai</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="French"><span>French</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="German"><span>German</span></label>
+            <label class="language-pill"><input type="checkbox" name="language" value="Chinese"><span>Chinese</span></label>
           </div>
         </div>
 
@@ -100,15 +100,12 @@
           </div>
         </div>
 
-        <!-- Legal confirmation — explicit checkbox, always visible -->
+        <!-- Legal confirmation — uses existing custom checkbox CSS pattern -->
         <div class="form-group" style="background:var(--accent-light);border-radius:var(--radius-md);padding:14px">
-          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer">
-            <input
-              type="checkbox"
-              id="apply-legal-checkbox"
-              style="width:20px;height:20px;min-width:20px;margin-top:2px;cursor:pointer;accent-color:var(--accent)"
-            >
-            <span style="font-size:13px;color:var(--text-secondary);line-height:1.5" data-i18n="apply_legal"></span>
+          <label class="form-checkbox-wrapper">
+            <input type="checkbox" class="form-checkbox-input" id="apply-legal-checkbox">
+            <span class="form-checkbox"></span>
+            <span class="form-label" style="font-size:13px;color:var(--text-secondary);line-height:1.5;font-weight:400" data-i18n="apply_legal"></span>
           </label>
           <div id="legal-error" class="form-error page--hidden"></div>
         </div>

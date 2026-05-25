@@ -142,7 +142,10 @@ async function handleAdminApprove(appId) {
     await adminApprove(appId, comment);
     document.getElementById(`admin-app-${appId}`)?.remove();
     tg?.HapticFeedback?.notificationOccurred('success');
-  } catch (e) { alert(t('error_generic')); }
+  } catch (e) {
+    console.error('approve error:', e);
+    alert('Approve failed: ' + (e?.message || JSON.stringify(e)));
+  }
 }
 
 async function handleAdminReject(appId) {
@@ -151,7 +154,10 @@ async function handleAdminReject(appId) {
     await adminReject(appId, comment);
     document.getElementById(`admin-app-${appId}`)?.remove();
     tg?.HapticFeedback?.notificationOccurred('success');
-  } catch (e) { alert(t('error_generic')); }
+  } catch (e) {
+    console.error('reject error:', e);
+    alert('Reject failed: ' + (e?.message || JSON.stringify(e)));
+  }
 }
 
 async function handleAdminOverride(profileId, status) {

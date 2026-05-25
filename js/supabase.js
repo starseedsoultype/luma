@@ -296,7 +296,14 @@ async function adminApprove(applicationId, comment) {
   const { data, error } = await db.functions.invoke('approve-helper', {
     body: { applicationId, comment },
   });
-  if (error) throw error;
+  if (error) {
+    let body = null;
+    try { body = await error.context?.json?.(); } catch (_) {}
+    const msg = body?.error || body?.message || error.message;
+    const steps = body?.steps ? ` [steps: ${body.steps.join('→')}]` : '';
+    const richErr = new Error(msg + steps);
+    throw richErr;
+  }
   return data;
 }
 
@@ -304,7 +311,14 @@ async function adminReject(applicationId, comment) {
   const { data, error } = await db.functions.invoke('reject-helper', {
     body: { applicationId, comment },
   });
-  if (error) throw error;
+  if (error) {
+    let body = null;
+    try { body = await error.context?.json?.(); } catch (_) {}
+    const msg = body?.error || body?.message || error.message;
+    const steps = body?.steps ? ` [steps: ${body.steps.join('→')}]` : '';
+    const richErr = new Error(msg + steps);
+    throw richErr;
+  }
   return data;
 }
 

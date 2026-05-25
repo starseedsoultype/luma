@@ -147,6 +147,19 @@ async function submitHelperApplication({ profile, legalConfirmation }) {
   });
 
   if (appError) throw appError;
+
+  // Notify admin — fire and forget, never blocks the user
+  db.functions.invoke('telegram-notify', {
+    body: {
+      event: 'new_application',
+      payload: {
+        displayName: profile.displayName,
+        category: profile.category,
+        city: profile.city,
+      },
+    },
+  }).catch(() => {});
+
   return helperProfile;
 }
 
@@ -354,22 +367,50 @@ async function removeBadge(helperProfileId, badgeKey) {
 }
 
 async function getAdminStats() {
-  const [users, helpers, applications, clicks, invites] = await Promise.all([
-    db.from('luma_users').select('id, role, created_at', { count: 'exact' }),
-    db.from('luma_helper_profiles').select('id, category, trust_status, city', { count: 'exact' }),
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [users, helpers, applications, clicks, invites, newUsers] = await Promise.all([
+    db.from('luma_users').select('id, role, status, created_at', { count: 'exact' }),
+    db.from('luma_helper_profiles').select('id, category, trust_status, city, is_active', { count: 'exact' }),
     db.from('luma_helper_applications').select('id, status', { count: 'exact' }),
-    db.from('luma_contact_clicks').select('id', { count: 'exact' }),
-    db.from('luma_invite_codes').select('id, used_at', { count: 'exact' }),
+    db.from('luma_contact_clicks').select('id, helper_profile_id', { count: 'exact' }),
+    db.from('luma_invite_codes').select('id, used_at, city', { count: 'exact' }),
+    db.from('luma_users').select('id', { count: 'exact' }).gte('created_at', sevenDaysAgo),
   ]);
+
+  const usersData      = users.data      || [];
+  const helpersData    = helpers.data    || [];
+  const appsData       = applications.data || [];
+  const invitesData    = invites.data    || [];
+  const clicksData     = clicks.data     || [];
+
   return {
-    totalUsers: users.count,
-    totalHelpers: helpers.count,
+    // Users
+    totalUsers:    users.count,
+    newUsers7d:    newUsers.count,
+    usersByRole:   groupBy(usersData, 'role'),
+
+    // Helpers
+    totalHelpers:        helpers.count,
+    helpersByCategory:   groupBy(helpersData, 'category'),
+    helpersByStatus:     groupBy(helpersData, 'trust_status'),
+    helpersByCity:       groupBy(helpersData, 'city'),
+    activeHelpers:       helpersData.filter(h => h.is_active).length,
+
+    // Applications
     totalApplications: applications.count,
+    pendingApps:       appsData.filter(a => a.status === 'pending').length,
+    approvedApps:      appsData.filter(a => a.status === 'approved').length,
+    rejectedApps:      appsData.filter(a => a.status === 'rejected').length,
+
+    // Invites
+    totalInvites:  invites.count,
+    invitesUsed:   invitesData.filter(i => i.used_at).length,
+    invitesByCity: groupBy(invitesData, 'city'),
+
+    // Engagement
     totalClicks: clicks.count,
-    totalInvites: invites.count,
-    helpersByCategory: groupBy(helpers.data, 'category'),
-    helpersByStatus: groupBy(helpers.data, 'trust_status'),
-    invitesUsed: (invites.data || []).filter(i => i.used_at).length,
+    clicksByHelper: groupBy(clicksData, 'helper_profile_id'),
   };
 }
 

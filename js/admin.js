@@ -27,20 +27,20 @@ async function loadAdminPage() {
       </select>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-      <button class="pill pill--active admin-tab" data-tab="applications">Applications</button>
+      <button class="pill admin-tab" data-tab="applications">Applications</button>
       <button class="pill admin-tab" data-tab="helpers">Helpers</button>
       <button class="pill admin-tab" data-tab="users">Users</button>
-      <button class="pill admin-tab" data-tab="stats">Stats</button>
+      <button class="pill pill--active admin-tab" data-tab="stats">Stats</button>
     </div>
-    <div id="admin-tab-applications"><div id="admin-applications-list"></div></div>
+    <div id="admin-tab-applications" class="page--hidden"><div id="admin-applications-list"></div></div>
     <div id="admin-tab-helpers" class="page--hidden"><div id="admin-helpers-list"></div></div>
     <div id="admin-tab-users" class="page--hidden"><div id="admin-users-list"></div></div>
-    <div id="admin-tab-stats" class="page--hidden"><div id="admin-stats-content"></div></div>
+    <div id="admin-tab-stats"><div id="admin-stats-content"></div></div>
   `;
 
   populateAdminCityFilter();
   setupAdminTabs();
-  loadAdminApplications();
+  loadAdminStats(); // open on metrics by default
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
@@ -268,27 +268,128 @@ async function handleBan(userId, action) {
 async function loadAdminStats() {
   const el = document.getElementById('admin-stats-content');
   if (!el) return;
-  el.innerHTML = '<div class="skeleton" style="height:200px;border-radius:12px"></div>';
+  el.innerHTML = [
+    '<div class="skeleton" style="height:80px;border-radius:12px;margin-bottom:10px"></div>',
+    '<div class="skeleton" style="height:120px;border-radius:12px;margin-bottom:10px"></div>',
+    '<div class="skeleton" style="height:120px;border-radius:12px"></div>',
+  ].join('');
+
   try {
     const s = await getAdminStats();
-    el.innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value">${s.totalUsers}</div><div class="stat-label">Users</div></div>
-        <div class="stat-card"><div class="stat-value">${s.totalHelpers}</div><div class="stat-label">Helpers</div></div>
-        <div class="stat-card"><div class="stat-value">${s.totalApplications}</div><div class="stat-label">Applications</div></div>
-        <div class="stat-card"><div class="stat-value">${s.totalClicks}</div><div class="stat-label">TG Clicks</div></div>
-        <div class="stat-card"><div class="stat-value">${s.totalInvites}</div><div class="stat-label">Invites</div></div>
-        <div class="stat-card"><div class="stat-value">${s.invitesUsed}</div><div class="stat-label">Used</div></div>
-      </div>
-      <div class="section-header" style="margin-top:20px"><span class="section-title">By category</span></div>
-      <div class="app-card">
-        ${Object.entries(s.helpersByCategory).map(([k, v]) =>
-          `<div class="profile-row"><span class="profile-row__label">${t(`cat_${k}`)}</span><span class="profile-row__value">${v}</span></div>`
-        ).join('')}
+    const inviteRate = s.totalInvites > 0
+      ? Math.round((s.invitesUsed / s.totalInvites) * 100) : 0;
+
+    // Attention banner — only if pending apps
+    const attentionHtml = s.pendingApps > 0 ? `
+      <div style="
+        background:var(--accent);color:#fff;border-radius:var(--radius-md);
+        padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;
+        justify-content:space-between;gap:12px
+      ">
+        <div>
+          <div style="font-weight:700;font-size:16px">⚠️ ${s.pendingApps} pending application${s.pendingApps > 1 ? 's' : ''}</div>
+          <div style="font-size:13px;opacity:0.85;margin-top:2px">Switch to Applications tab to review</div>
+        </div>
+      </div>` : '';
+
+    // Users block
+    const rolesHtml = Object.entries(s.usersByRole).map(([role, count]) =>
+      `<div class="profile-row">
+        <span class="profile-row__label" style="text-transform:capitalize">${role}</span>
+        <span class="profile-row__value">${count}</span>
+      </div>`
+    ).join('');
+
+    // Applications pipeline
+    const pipelineHtml = `
+      <div style="display:flex;gap:8px;margin-top:8px">
+        ${statPill(s.pendingApps, 'Pending', '#f59e0b')}
+        ${statPill(s.approvedApps, 'Approved', 'var(--accent)')}
+        ${statPill(s.rejectedApps, 'Rejected', '#ef4444')}
       </div>`;
+
+    // Helpers by category
+    const catHtml = Object.keys(s.helpersByCategory).length
+      ? Object.entries(s.helpersByCategory).map(([k, v]) =>
+          `<div class="profile-row">
+            <span class="profile-row__label">${t(`cat_${k}`)}</span>
+            <span class="profile-row__value">${v}</span>
+          </div>`
+        ).join('')
+      : '<div style="font-size:13px;color:var(--text-muted);padding:6px 0">No helpers yet</div>';
+
+    // Invites by city
+    const cityInvHtml = Object.keys(s.invitesByCity).length
+      ? Object.entries(s.invitesByCity).map(([city, count]) =>
+          `<div class="profile-row">
+            <span class="profile-row__label" style="text-transform:capitalize">${city}</span>
+            <span class="profile-row__value">${count}</span>
+          </div>`
+        ).join('')
+      : '';
+
+    el.innerHTML = `
+      ${attentionHtml}
+
+      <!-- Key numbers -->
+      <div class="stats-grid" style="margin-bottom:16px">
+        ${statCard(s.totalUsers, 'Total Users')}
+        ${statCard('+' + s.newUsers7d, 'New (7d)')}
+        ${statCard(s.activeHelpers, 'Active Helpers')}
+        ${statCard(s.totalClicks, 'TG Clicks')}
+      </div>
+
+      <!-- Users by role -->
+      <div style="font-weight:600;font-size:13px;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px">Users</div>
+      <div class="app-card" style="margin-bottom:16px">
+        ${rolesHtml || '<div style="color:var(--text-muted);font-size:13px">No users</div>'}
+      </div>
+
+      <!-- Application pipeline -->
+      <div style="font-weight:600;font-size:13px;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px">Application pipeline</div>
+      ${pipelineHtml}
+      <div style="margin-bottom:16px"></div>
+
+      <!-- Helpers by category -->
+      <div style="font-weight:600;font-size:13px;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px">Helpers by category</div>
+      <div class="app-card" style="margin-bottom:16px">
+        ${catHtml}
+      </div>
+
+      <!-- Invite funnel -->
+      <div style="font-weight:600;font-size:13px;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px">Invite funnel</div>
+      <div class="app-card" style="margin-bottom:16px">
+        <div class="profile-row">
+          <span class="profile-row__label">Total sent</span>
+          <span class="profile-row__value">${s.totalInvites}</span>
+        </div>
+        <div class="profile-row">
+          <span class="profile-row__label">Used</span>
+          <span class="profile-row__value">${s.invitesUsed}</span>
+        </div>
+        <div class="profile-row">
+          <span class="profile-row__label">Conversion</span>
+          <span class="profile-row__value" style="color:var(--accent);font-weight:700">${inviteRate}%</span>
+        </div>
+        ${cityInvHtml}
+      </div>
+    `;
   } catch (e) {
+    console.error('Stats error', e);
     el.innerHTML = `<div class="empty-state"><div class="empty-state__title">${t('error_generic')}</div></div>`;
   }
+}
+
+function statCard(value, label) {
+  return `<div class="stat-card"><div class="stat-value">${value ?? '—'}</div><div class="stat-label">${label}</div></div>`;
+}
+
+function statPill(value, label, color) {
+  return `
+    <div style="flex:1;background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px 12px;text-align:center">
+      <div style="font-size:22px;font-weight:700;color:${color}">${value ?? 0}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${label}</div>
+    </div>`;
 }
 
 // ─── City filter ──────────────────────────────────────────────────────────────

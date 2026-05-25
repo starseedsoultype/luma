@@ -1,10 +1,43 @@
-async function initAdminPage() {
-  App.user = await getCurrentUser();
-  if (!App.user || App.user.role !== 'admin') {
-    document.querySelector('.page-content').innerHTML =
-      `<div class="empty-state"><div class="empty-state__title">${t('error_not_authorized')}</div></div>`;
+// ─── Load admin page ──────────────────────────────────────────────────────────
+// Called by app.js when navigating to the admin tab.
+// Injects the full admin UI into #admin-content, then wires up tabs and loads data.
+
+async function loadAdminPage() {
+  const content = document.getElementById('admin-content');
+  if (!content) return;
+
+  // Fresh role check
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'admin') {
+    content.innerHTML = `<div class="empty-state"><div class="empty-state__title">${t('error_not_authorized')}</div></div>`;
     return;
   }
+
+  // Inject admin HTML structure
+  content.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <select id="admin-city-filter" class="form-select" style="flex:1">
+        <option value="">All cities</option>
+      </select>
+      <select id="admin-status-filter" class="form-select" style="flex:1">
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+        <option value="">All</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="pill pill--active admin-tab" data-tab="applications">Applications</button>
+      <button class="pill admin-tab" data-tab="helpers">Helpers</button>
+      <button class="pill admin-tab" data-tab="users">Users</button>
+      <button class="pill admin-tab" data-tab="stats">Stats</button>
+    </div>
+    <div id="admin-tab-applications"><div id="admin-applications-list"></div></div>
+    <div id="admin-tab-helpers" class="page--hidden"><div id="admin-helpers-list"></div></div>
+    <div id="admin-tab-users" class="page--hidden"><div id="admin-users-list"></div></div>
+    <div id="admin-tab-stats" class="page--hidden"><div id="admin-stats-content"></div></div>
+  `;
+
   populateAdminCityFilter();
   setupAdminTabs();
   loadAdminApplications();
@@ -17,7 +50,7 @@ function setupAdminTabs() {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('pill--active'));
       tab.classList.add('pill--active');
-      ['applications','helpers','users','stats'].forEach(name => {
+      ['applications', 'helpers', 'users', 'stats'].forEach(name => {
         document.getElementById(`admin-tab-${name}`)?.classList.add('page--hidden');
       });
       const active = document.getElementById(`admin-tab-${tab.dataset.tab}`);
@@ -53,9 +86,10 @@ async function loadAdminApplications() {
 }
 
 function renderAdminAppCard(app) {
-  const p = app.helper_profiles;
+  // Supabase returns joined tables using the actual table name as the key
+  const p = app.luma_helper_profiles;
   if (!p) return '';
-  const votes = app.approval_votes || [];
+  const votes = app.luma_approval_votes || [];
   const approves = votes.filter(v => v.vote === 'approve').length;
   const rejects = votes.filter(v => v.vote === 'reject').length;
 
@@ -182,7 +216,7 @@ async function loadAdminUsers() {
           <div>
             <div style="font-weight:600">${escHtml(u.name)}</div>
             <div style="font-size:13px;color:var(--text-secondary)">
-              ${u.telegram_handle ? `@${u.telegram_handle} · ` : ''}${u.role} · ${u.city || ''}
+              ${u.telegram_handle ? `@${u.telegram_handle} · ` : ''}${u.role} · ${u.current_city || ''}
             </div>
           </div>
           <span class="status-badge status-badge--${u.status === 'active' ? 'approved' : 'rejected'}">
@@ -270,6 +304,8 @@ function populateAdminCityFilter() {
   });
 }
 
+// ─── Utils ────────────────────────────────────────────────────────────────────
+
 function escHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

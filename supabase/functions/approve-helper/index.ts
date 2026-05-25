@@ -1,12 +1,11 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -66,9 +65,10 @@ serve(async (req) => {
 
     await supabase.from('luma_users').update({ role: 'helper' }).eq('id', app.user_id);
 
-    // Notify helper
+    // Notify helper via Telegram
     if (app.luma_users?.telegram_id) {
-      await notifyTelegram(app.luma_users.telegram_id,
+      await notifyTelegram(
+        app.luma_users.telegram_id,
         `✅ Your Luma application has been approved! You're now listed in the directory.`
       );
     }
